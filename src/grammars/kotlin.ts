@@ -25,38 +25,6 @@ export type NearleySymbol = string | { literal: any } | { test: (token: any) => 
 export var Lexer: Lexer | undefined = undefined;
 
 export var ParserRules: NearleyRule[] = [
-    {"name": "_$ebnf$1", "symbols": []},
-    {"name": "_$ebnf$1", "symbols": ["_$ebnf$1", "wschar"], "postprocess": (d) => d[0].concat([d[1]])},
-    {"name": "_", "symbols": ["_$ebnf$1"], "postprocess": function(d) {return null;}},
-    {"name": "__$ebnf$1", "symbols": ["wschar"]},
-    {"name": "__$ebnf$1", "symbols": ["__$ebnf$1", "wschar"], "postprocess": (d) => d[0].concat([d[1]])},
-    {"name": "__", "symbols": ["__$ebnf$1"], "postprocess": function(d) {return null;}},
-    {"name": "wschar", "symbols": [/[ \t\n\v\f]/], "postprocess": id},
-    {"name": "dqstring$ebnf$1", "symbols": []},
-    {"name": "dqstring$ebnf$1", "symbols": ["dqstring$ebnf$1", "dstrchar"], "postprocess": (d) => d[0].concat([d[1]])},
-    {"name": "dqstring", "symbols": [{"literal":"\""}, "dqstring$ebnf$1", {"literal":"\""}], "postprocess": function(d) {return d[1].join(""); }},
-    {"name": "sqstring$ebnf$1", "symbols": []},
-    {"name": "sqstring$ebnf$1", "symbols": ["sqstring$ebnf$1", "sstrchar"], "postprocess": (d) => d[0].concat([d[1]])},
-    {"name": "sqstring", "symbols": [{"literal":"'"}, "sqstring$ebnf$1", {"literal":"'"}], "postprocess": function(d) {return d[1].join(""); }},
-    {"name": "btstring$ebnf$1", "symbols": []},
-    {"name": "btstring$ebnf$1", "symbols": ["btstring$ebnf$1", /[^`]/], "postprocess": (d) => d[0].concat([d[1]])},
-    {"name": "btstring", "symbols": [{"literal":"`"}, "btstring$ebnf$1", {"literal":"`"}], "postprocess": function(d) {return d[1].join(""); }},
-    {"name": "dstrchar", "symbols": [/[^\\"\n]/], "postprocess": id},
-    {"name": "dstrchar", "symbols": [{"literal":"\\"}, "strescape"], "postprocess": 
-        function(d) {
-            return JSON.parse("\""+d.join("")+"\"");
-        }
-        },
-    {"name": "sstrchar", "symbols": [/[^\\'\n]/], "postprocess": id},
-    {"name": "sstrchar", "symbols": [{"literal":"\\"}, "strescape"], "postprocess": function(d) { return JSON.parse("\""+d.join("")+"\""); }},
-    {"name": "sstrchar$string$1", "symbols": [{"literal":"\\"}, {"literal":"'"}], "postprocess": (d) => d.join('')},
-    {"name": "sstrchar", "symbols": ["sstrchar$string$1"], "postprocess": function(d) {return "'"; }},
-    {"name": "strescape", "symbols": [/["\\\/bfnrt]/], "postprocess": id},
-    {"name": "strescape", "symbols": [{"literal":"u"}, /[a-fA-F0-9]/, /[a-fA-F0-9]/, /[a-fA-F0-9]/, /[a-fA-F0-9]/], "postprocess": 
-        function(d) {
-            return d.join("");
-        }
-        },
     {"name": "unsigned_int$ebnf$1", "symbols": [/[0-9]/]},
     {"name": "unsigned_int$ebnf$1", "symbols": ["unsigned_int$ebnf$1", /[0-9]/], "postprocess": (d) => d[0].concat([d[1]])},
     {"name": "unsigned_int", "symbols": ["unsigned_int$ebnf$1"], "postprocess": 
@@ -143,10 +111,68 @@ export var ParserRules: NearleyRule[] = [
             );
         }
         },
-    {"name": "OpenBrace", "symbols": [{"literal":"{"}]},
-    {"name": "CloseBrace", "symbols": [{"literal":"}"}]},
-    {"name": "Test$string$1", "symbols": [{"literal":"t"}, {"literal":"e"}, {"literal":"s"}, {"literal":"t"}], "postprocess": (d) => d.join('')},
-    {"name": "Test", "symbols": ["Test$string$1"]}
+    {"name": "dqstring$ebnf$1", "symbols": []},
+    {"name": "dqstring$ebnf$1", "symbols": ["dqstring$ebnf$1", "dstrchar"], "postprocess": (d) => d[0].concat([d[1]])},
+    {"name": "dqstring", "symbols": [{"literal":"\""}, "dqstring$ebnf$1", {"literal":"\""}], "postprocess": function(d) {return d[1].join(""); }},
+    {"name": "sqstring$ebnf$1", "symbols": []},
+    {"name": "sqstring$ebnf$1", "symbols": ["sqstring$ebnf$1", "sstrchar"], "postprocess": (d) => d[0].concat([d[1]])},
+    {"name": "sqstring", "symbols": [{"literal":"'"}, "sqstring$ebnf$1", {"literal":"'"}], "postprocess": function(d) {return d[1].join(""); }},
+    {"name": "btstring$ebnf$1", "symbols": []},
+    {"name": "btstring$ebnf$1", "symbols": ["btstring$ebnf$1", /[^`]/], "postprocess": (d) => d[0].concat([d[1]])},
+    {"name": "btstring", "symbols": [{"literal":"`"}, "btstring$ebnf$1", {"literal":"`"}], "postprocess": function(d) {return d[1].join(""); }},
+    {"name": "dstrchar", "symbols": [/[^\\"\n]/], "postprocess": id},
+    {"name": "dstrchar", "symbols": [{"literal":"\\"}, "strescape"], "postprocess": 
+        function(d) {
+            return JSON.parse("\""+d.join("")+"\"");
+        }
+        },
+    {"name": "sstrchar", "symbols": [/[^\\'\n]/], "postprocess": id},
+    {"name": "sstrchar", "symbols": [{"literal":"\\"}, "strescape"], "postprocess": function(d) { return JSON.parse("\""+d.join("")+"\""); }},
+    {"name": "sstrchar$string$1", "symbols": [{"literal":"\\"}, {"literal":"'"}], "postprocess": (d) => d.join('')},
+    {"name": "sstrchar", "symbols": ["sstrchar$string$1"], "postprocess": function(d) {return "'"; }},
+    {"name": "strescape", "symbols": [/["\\\/bfnrt]/], "postprocess": id},
+    {"name": "strescape", "symbols": [{"literal":"u"}, /[a-fA-F0-9]/, /[a-fA-F0-9]/, /[a-fA-F0-9]/, /[a-fA-F0-9]/], "postprocess": 
+        function(d) {
+            return d.join("");
+        }
+        },
+    {"name": "_$ebnf$1", "symbols": []},
+    {"name": "_$ebnf$1", "symbols": ["_$ebnf$1", "wschar"], "postprocess": (d) => d[0].concat([d[1]])},
+    {"name": "_", "symbols": ["_$ebnf$1"], "postprocess": function(d) {return null;}},
+    {"name": "__$ebnf$1", "symbols": ["wschar"]},
+    {"name": "__$ebnf$1", "symbols": ["__$ebnf$1", "wschar"], "postprocess": (d) => d[0].concat([d[1]])},
+    {"name": "__", "symbols": ["__$ebnf$1"], "postprocess": function(d) {return null;}},
+    {"name": "wschar", "symbols": [/[ \t\n\v\f]/], "postprocess": id},
+    {"name": "Programm", "symbols": ["_", "Sections", "_"], "postprocess": d => d[1]},
+    {"name": "Sections", "symbols": ["Section"], "postprocess": d => [d[0]]},
+    {"name": "Sections", "symbols": ["Section", "_", "Sections"], "postprocess": d => [d[0], ...d[2]]},
+    {"name": "Section", "symbols": ["SectionName", "_", {"literal":"{"}, "_", "FieldList", "_", {"literal":"}"}], "postprocess": d => ({ name: d[0].name, body: d[4][0]})},
+    {"name": "SectionName", "symbols": ["Name"], "postprocess": d => ({ name: d[0].name })},
+    {"name": "SectionName", "symbols": ["string"], "postprocess": d => ({ name: d[0] })},
+    {"name": "FieldList", "symbols": ["Field"]},
+    {"name": "FieldList", "symbols": ["Field", "__", "FieldList"]},
+    {"name": "Field", "symbols": ["Name"]},
+    {"name": "Field", "symbols": ["Atom"]},
+    {"name": "Field", "symbols": ["Section"]},
+    {"name": "Field", "symbols": ["Chain"]},
+    {"name": "Chain", "symbols": ["ChainSection"], "postprocess": d => d[0]},
+    {"name": "Chain", "symbols": ["ChainSection", {"literal":"."}, "Chain"], "postprocess": d => [d[0][0], ...d[2]]},
+    {"name": "ChainSection", "symbols": ["Name"]},
+    {"name": "ChainSection", "symbols": ["Call"]},
+    {"name": "Call", "symbols": ["Name", "Arguments"], "postprocess": d => ({ name: d[0].name, arguments: d[1] })},
+    {"name": "Arguments", "symbols": [{"literal":"("}, "ParameterList", {"literal":")"}], "postprocess": d => d[1]},
+    {"name": "Arguments", "symbols": [{"literal":"("}, {"literal":")"}], "postprocess": d => []},
+    {"name": "ParameterList", "symbols": ["Atom"]},
+    {"name": "ParameterList", "symbols": ["Atom", "_", {"literal":","}, "_", "ParameterList"]},
+    {"name": "Atom", "symbols": ["number"]},
+    {"name": "Atom", "symbols": ["string"]},
+    {"name": "Name", "symbols": ["_name"], "postprocess": d => ({ name: d[0]})},
+    {"name": "_name", "symbols": [/[a-zA-Z_]/], "postprocess": id},
+    {"name": "_name", "symbols": ["_name", /[\w_]/], "postprocess": d => d[0] + d[1]},
+    {"name": "string", "symbols": ["dqstring"]},
+    {"name": "string", "symbols": ["sqstring"]},
+    {"name": "number", "symbols": ["int"]},
+    {"name": "number", "symbols": ["decimal"]}
 ];
 
-export var ParserStart: string = "OpenBrace";
+export var ParserStart: string = "Programm";
