@@ -4,6 +4,25 @@
 // @ts-ignore
 function id(d: any[]): any { return d[0]; }
 
+
+const moo = require("moo");
+
+const lexer = moo.compile({
+  space: { match: /\s+/, lineBreaks: true },
+  number: /-?(?:[0-9]|[1-9][0-9]+)(?:\.[0-9]+)?(?:[eE][-+]?[0-9]+)?\b/,
+  string: /"(?:\\["bfnrt\/\\]|\\u[a-fA-F0-9]{4}|[^"\\])*"/,
+  '{': '{',
+  '}': '}',
+  '[': '[',
+  ']': ']',
+  ',': ',',
+  ':': ':',
+  true: 'true',
+  false: 'false',
+  null: 'null'
+});
+
+
 export interface Token { value: any; [key: string]: any };
 
 export interface Lexer {

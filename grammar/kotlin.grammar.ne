@@ -4,6 +4,29 @@
 @builtin "string.ne"
 @builtin "whitespace.ne"
 
+# @{%
+
+# const moo = require("moo");
+
+# const lexer = moo.compile({
+#   space: { match: /\s+/, lineBreaks: true },
+#   number: /-?(?:[0-9]|[1-9][0-9]+)(?:\.[0-9]+)?(?:[eE][-+]?[0-9]+)?\b/,
+#   string: /"(?:\\["bfnrt\/\\]|\\u[a-fA-F0-9]{4}|[^"\\])*"/,
+#   '{': '{',
+#   '}': '}',
+#   '[': '[',
+#   ']': ']',
+#   ',': ',',
+#   ':': ':',
+#   true: 'true',
+#   false: 'false',
+#   null: 'null'
+# });
+
+# %}
+
+# # @lexer lexer
+
 Programm -> _ Sections _ {% d => d[1] %}
 
 Sections -> Section {% d => [d[0]] %}
@@ -31,6 +54,8 @@ Arguments -> "(" ParameterList ")" {% d => d[1] %}
 ParameterList -> Atom | Atom _ "," _ ParameterList
 
 Atom ->  number | string
+
+# variables, section names
 
 Name -> _name {% d => ({ name: d[0]}) %}
 

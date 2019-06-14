@@ -1,48 +1,48 @@
 import { Parser, Grammar } from "nearley";
 import * as grammar from "./grammars/kotlin";
 
-const start = process.memoryUsage();
+export class KotlinDSLParser {
+  private parser = new Parser(Grammar.fromCompiled(grammar));
 
-const parser = new Parser(Grammar.fromCompiled(grammar));
-
-parser.feed(`
-plugins {
-  "java-library"
-}
-
-dependencies {
-  api("junit:junit:4.12")
-  implementation("junit:junit:4.12")
-  testImplementation("junit:junit:4.12")
-}
-
-configurations {
-
-  implementation {
-    resolutionStrategy.failOnVersionConflict()
-  }
-
-  "production" {
-    resolutionStrategy.failOnVersionConflict()
-  }
-
-}
-
-buildFalovrs {
-  development {
-    restrict()
-  }
-
-  production {
-    restrict()
+  public parse(contents: string): any {
+    this.parser.feed(contents);
+    this.parser.finish();
+    return this.parser.results;
   }
 }
-`);
 
+// const parser = new KotlinDSLParser();
 
-console.log(parser.results.push.length);
-console.log(JSON.stringify(parser.results[0], null, 2));
+// console.log(parser.parse(`
+// plugins {
+//   "java-library"
+// }
 
-const end = process.memoryUsage();
+// dependencies {
+//   api("junit:junit:4.12")
+//   implementation("junit:junit:4.12")
+//   testImplementation("junit:junit:4.12")
+// }
 
-console.log(`Used: ${end.heapUsed - start.heapUsed}`);
+// configurations {
+
+//   implementation {
+//     resolutionStrategy.failOnVersionConflict()
+//   }
+
+//   "production" {
+//     resolutionStrategy.failOnVersionConflict()
+//   }
+
+// }
+
+// buildFalovrs {
+//   development {
+//     restrict()
+//   }
+
+//   production {
+//     restrict()
+//   }
+// }
+// `));

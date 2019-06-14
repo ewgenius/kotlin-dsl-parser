@@ -1,5 +1,3 @@
-// typesafe
-
 plugins {
   `java-library`
 }
