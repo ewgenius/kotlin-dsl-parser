@@ -5,21 +5,33 @@
 function id(d: any[]): any { return d[0]; }
 
 
-const moo = require("moo");
+type ParsingOuput = any[];
+type ParsingArrayOutput = any[][];
 
-const lexer = moo.compile({
-  space: { match: /\s+/, lineBreaks: true },
-  number: /-?(?:[0-9]|[1-9][0-9]+)(?:\.[0-9]+)?(?:[eE][-+]?[0-9]+)?\b/,
-  string: /"(?:\\["bfnrt\/\\]|\\u[a-fA-F0-9]{4}|[^"\\])*"/,
-  '{': '{',
-  '}': '}',
-  '[': '[',
-  ']': ']',
-  ',': ',',
-  ':': ':',
-  true: 'true',
-  false: 'false',
-  null: 'null'
+
+
+
+export interface KotlinSection {
+  name: string;
+  body: any[];
+};
+
+export type KotlinSectionsDictionary = {
+  [name: string]: KotlinSection
+};
+
+const sectionsPostProcessor = (d: ParsingArrayOutput) => d[1].reduce<KotlinSectionsDictionary>(
+  (dict: KotlinSectionsDictionary, section: KotlinSection) => {
+    dict[section.name] = section;
+    return dict;
+  }, {})
+
+
+
+
+const pluginsPostProcessor = (d: ParsingArrayOutput) => ({
+  name: "plugins",
+  plugins: []
 });
 
 
@@ -162,34 +174,42 @@ export var ParserRules: NearleyRule[] = [
     {"name": "__$ebnf$1", "symbols": ["__$ebnf$1", "wschar"], "postprocess": (d) => d[0].concat([d[1]])},
     {"name": "__", "symbols": ["__$ebnf$1"], "postprocess": function(d) {return null;}},
     {"name": "wschar", "symbols": [/[ \t\n\v\f]/], "postprocess": id},
-    {"name": "Programm", "symbols": ["_", "Sections", "_"], "postprocess": d => d[1]},
-    {"name": "Sections", "symbols": ["Section"], "postprocess": d => [d[0]]},
-    {"name": "Sections", "symbols": ["Section", "_", "Sections"], "postprocess": d => [d[0], ...d[2]]},
-    {"name": "Section", "symbols": ["SectionName", "_", {"literal":"{"}, "_", "FieldList", "_", {"literal":"}"}], "postprocess": d => ({ name: d[0].name, body: d[4][0]})},
-    {"name": "SectionName", "symbols": ["Name"], "postprocess": d => ({ name: d[0].name })},
-    {"name": "SectionName", "symbols": ["string"], "postprocess": d => ({ name: d[0] })},
+    {"name": "Programm", "symbols": ["_", "SectionList", "_"], "postprocess": sectionsPostProcessor},
+    {"name": "SectionList", "symbols": ["Section"], "postprocess": d => [d[0]]},
+    {"name": "SectionList", "symbols": ["Section", "_", "SectionList"], "postprocess": d => [d[0], ...d[2]]},
+    {"name": "Section", "symbols": ["BlockSection"]},
+    {"name": "BlockSection", "symbols": ["SectionName", "_", {"literal":"{"}, "_", "FieldList", "_", {"literal":"}"}], "postprocess": d => ({ name: d[0], body: d[4][0]})},
+    {"name": "SectionName", "symbols": ["Name"], "postprocess": d => d[0]},
+    {"name": "SectionName", "symbols": ["string"], "postprocess": d => d[0][0]},
+    {"name": "FieldList", "symbols": []},
     {"name": "FieldList", "symbols": ["Field"]},
     {"name": "FieldList", "symbols": ["Field", "__", "FieldList"]},
-    {"name": "Field", "symbols": ["Name"]},
-    {"name": "Field", "symbols": ["Atom"]},
+    {"name": "Field", "symbols": ["Item"]},
     {"name": "Field", "symbols": ["Section"]},
-    {"name": "Field", "symbols": ["Chain"]},
-    {"name": "Chain", "symbols": ["ChainSection"], "postprocess": d => d[0]},
-    {"name": "Chain", "symbols": ["ChainSection", {"literal":"."}, "Chain"], "postprocess": d => [d[0][0], ...d[2]]},
+    {"name": "Field", "symbols": ["Assigment"]},
+    {"name": "Item", "symbols": ["Name"]},
+    {"name": "Item", "symbols": ["Atom"]},
+    {"name": "Item", "symbols": ["Chain"]},
+    {"name": "Chain", "symbols": ["ChainSection"]},
+    {"name": "Chain", "symbols": ["ChainSection", {"literal":"."}, "Chain"]},
     {"name": "ChainSection", "symbols": ["Name"]},
     {"name": "ChainSection", "symbols": ["Call"]},
     {"name": "Call", "symbols": ["Name", "Arguments"], "postprocess": d => ({ name: d[0].name, arguments: d[1] })},
-    {"name": "Arguments", "symbols": [{"literal":"("}, "ParameterList", {"literal":")"}], "postprocess": d => d[1]},
+    {"name": "Arguments", "symbols": [{"literal":"("}, "ArgumentList", {"literal":")"}], "postprocess": d => d[1]},
     {"name": "Arguments", "symbols": [{"literal":"("}, {"literal":")"}], "postprocess": d => []},
-    {"name": "ParameterList", "symbols": ["Atom"]},
-    {"name": "ParameterList", "symbols": ["Atom", "_", {"literal":","}, "_", "ParameterList"]},
+    {"name": "ArgumentList", "symbols": ["Argument"]},
+    {"name": "ArgumentList", "symbols": ["Argument", "_", {"literal":","}, "_", "ArgumentList"]},
+    {"name": "Argument", "symbols": ["Atom"]},
+    {"name": "Argument", "symbols": ["Assigment"]},
+    {"name": "Assigment", "symbols": ["Name", "_", {"literal":"="}, "_", "Assigment"]},
     {"name": "Atom", "symbols": ["number"]},
     {"name": "Atom", "symbols": ["string"]},
-    {"name": "Name", "symbols": ["_name"], "postprocess": d => ({ name: d[0]})},
+    {"name": "Name", "symbols": ["_name"], "postprocess": d => d[0]},
     {"name": "_name", "symbols": [/[a-zA-Z_]/], "postprocess": id},
     {"name": "_name", "symbols": ["_name", /[\w_]/], "postprocess": d => d[0] + d[1]},
     {"name": "string", "symbols": ["dqstring"]},
     {"name": "string", "symbols": ["sqstring"]},
+    {"name": "string", "symbols": ["btstring"]},
     {"name": "number", "symbols": ["int"]},
     {"name": "number", "symbols": ["decimal"]}
 ];
