@@ -76,7 +76,13 @@ Argument -> Number {% id %}
 
 Number -> %number {% d => d[0].value %}
 
-String -> %string {% d => d[0].value %}
+String -> %string {% d => {
+    if (d[0].value.startsWith(`"`)) {
+      return d[0].value.slice(1, d[0].value.length - 1);
+    }
+    return d[0].value;
+  }
+%}
 
 Identifier -> %identifier {% d => d[0].value %}
 

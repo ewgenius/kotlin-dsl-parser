@@ -98,7 +98,13 @@ export var ParserRules: NearleyRule[] = [
     {"name": "Argument", "symbols": ["String"], "postprocess": id},
     {"name": "Argument", "symbols": ["Identifier"], "postprocess": id},
     {"name": "Number", "symbols": [(lexer.has("number") ? {type: "number"} : number)], "postprocess": d => d[0].value},
-    {"name": "String", "symbols": [(lexer.has("string") ? {type: "string"} : string)], "postprocess": d => d[0].value},
+    {"name": "String", "symbols": [(lexer.has("string") ? {type: "string"} : string)], "postprocess":  d => {
+          if (d[0].value.startsWith(`"`)) {
+            return d[0].value.slice(1, d[0].value.length - 1);
+          }
+          return d[0].value;
+        }
+        },
     {"name": "Identifier", "symbols": [(lexer.has("identifier") ? {type: "identifier"} : identifier)], "postprocess": d => d[0].value},
     {"name": "_", "symbols": []},
     {"name": "_", "symbols": [(lexer.has("ws") ? {type: "ws"} : ws)], "postprocess": d => null},

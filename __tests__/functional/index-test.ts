@@ -33,7 +33,7 @@ describe("Parser functional tests", () => {
       }
     ],
     [`test.block { }`, { "test.block": { block: "test.block", body: [] } }],
-    [`"block" { }`, { '"block"': { block: '"block"', body: [] } }],
+    [`block { }`, { block: { block: "block", body: [] } }],
     [`block {test}`, { block: { block: "block", body: ["test"] } }],
     [`block { test }`, { block: { block: "block", body: ["test"] } }],
     [
@@ -79,7 +79,7 @@ describe("Parser functional tests", () => {
       {
         block: {
           block: "block",
-          body: [{ function: "function.call", arguments: ["\"test\""] }]
+          body: [{ function: "function.call", arguments: ["test"] }]
         }
       }
     ],
@@ -128,7 +128,7 @@ describe("Parser functional tests", () => {
           body: [
             {
               function: "id",
-              arguments: ["\"com.android.application\""]
+              arguments: ["com.android.application"]
             }
           ]
         },
