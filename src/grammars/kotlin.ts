@@ -22,6 +22,7 @@ const lexer = moo.compile({
   "}": "}",
   "(": "(",
   ")": ")",
+  ",": ",",
   identifier: /[a-zA-Z_][a-zA-Z0-9_\.]*/,
 });
 
@@ -93,11 +94,11 @@ export var ParserRules: NearleyRule[] = [
     {"name": "Function", "symbols": ["Identifier", {"literal":"("}, "_", "Arguments", "_", {"literal":")"}], "postprocess": d => ({ function: d[0], arguments: d[3] })},
     {"name": "Arguments", "symbols": []},
     {"name": "Arguments", "symbols": ["Argument"]},
-    {"name": "Arguments", "symbols": ["Argument", "_", {"literal":","}, "_", "Arguments"], "postprocess": concatArrays(0, 4)},
+    {"name": "Arguments", "symbols": ["Argument", "_", {"literal":","}, "_", "Arguments"], "postprocess": concatToArray(0, 4)},
     {"name": "Argument", "symbols": ["Number"], "postprocess": id},
     {"name": "Argument", "symbols": ["String"], "postprocess": id},
     {"name": "Argument", "symbols": ["Identifier"], "postprocess": id},
-    {"name": "Number", "symbols": [(lexer.has("number") ? {type: "number"} : number)], "postprocess": d => d[0].value},
+    {"name": "Number", "symbols": [(lexer.has("number") ? {type: "number"} : number)], "postprocess": d => Number(d[0].value)},
     {"name": "String", "symbols": [(lexer.has("string") ? {type: "string"} : string)], "postprocess":  d => {
           if (d[0].value.startsWith(`"`)) {
             return d[0].value.slice(1, d[0].value.length - 1);

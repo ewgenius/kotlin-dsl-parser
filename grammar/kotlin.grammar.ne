@@ -15,6 +15,7 @@ const lexer = moo.compile({
   "}": "}",
   "(": "(",
   ")": ")",
+  ",": ",",
   identifier: /[a-zA-Z_][a-zA-Z0-9_\.]*/,
 });
 
@@ -66,7 +67,7 @@ Field -> ( String | Identifier | Function | Block ) {% id %}
 
 Function -> Identifier "(" _ Arguments _ ")" {% d => ({ function: d[0], arguments: d[3] }) %}
 
-Arguments -> null | Argument | Argument _ "," _ Arguments {% concatArrays(0, 4) %}
+Arguments -> null | Argument | Argument _ "," _ Arguments {% concatToArray(0, 4) %}
 
 Argument -> Number {% id %}
           | String {% id %}
@@ -74,7 +75,7 @@ Argument -> Number {% id %}
 
 # Primitives
 
-Number -> %number {% d => d[0].value %}
+Number -> %number {% d => Number(d[0].value) %}
 
 String -> %string {% d => {
     if (d[0].value.startsWith(`"`)) {

@@ -59,6 +59,27 @@ describe("Parser functional tests", () => {
       }
     ],
     [
+      `block { function.call(1,2,"Test") }`,
+      {
+        block: {
+          block: "block",
+          body: [{ function: "function.call", arguments: [1, 2, "Test"] }]
+        }
+      }
+    ],
+    [
+      `block { function.call(
+        1,
+        2  ,  "Test"
+      ) }`,
+      {
+        block: {
+          block: "block",
+          body: [{ function: "function.call", arguments: [1, 2, "Test"] }]
+        }
+      }
+    ],
+    [
       `
       block {
         test
