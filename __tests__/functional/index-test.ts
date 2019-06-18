@@ -15,6 +15,23 @@ describe("Parser functional tests", () => {
     [`block{}`, { block: { block: "block", body: [] } }],
     [`block {}`, { block: { block: "block", body: [] } }],
     [`block { }`, { block: { block: "block", body: [] } }],
+    [
+      `block1 { } block2 { }`,
+      {
+        block1: { block: "block1", body: [] },
+        block2: { block: "block2", body: [] }
+      }
+    ],
+    [
+      `
+      block1 { }
+      block2 { }
+      `,
+      {
+        block1: { block: "block1", body: [] },
+        block2: { block: "block2", body: [] }
+      }
+    ],
     [`test.block { }`, { "test.block": { block: "test.block", body: [] } }],
     [`"block" { }`, { '"block"': { block: '"block"', body: [] } }],
     [`block {test}`, { block: { block: "block", body: ["test"] } }],
@@ -57,6 +74,17 @@ describe("Parser functional tests", () => {
     ],
     [
       `
+      block { function.call("test") }
+      `,
+      {
+        block: {
+          block: "block",
+          body: [{ function: "function.call", arguments: ["\"test\""] }]
+        }
+      }
+    ],
+    [
+      `
       block {
         test
         function.call()
@@ -67,6 +95,43 @@ describe("Parser functional tests", () => {
       }
       `,
       {
+        block: {
+          block: "block",
+          body: [
+            "test",
+            { function: "function.call", arguments: [] },
+            {
+              block: "sub_block",
+              body: ["test", { function: "call2", arguments: [] }]
+            }
+          ]
+        }
+      }
+    ],
+    [
+      `
+      plugins {
+        id("com.android.application")
+      }
+      block {
+        test
+        function.call()
+        sub_block {
+          test
+          call2()
+        }
+      }
+      `,
+      {
+        plugins: {
+          block: "plugins",
+          body: [
+            {
+              function: "id",
+              arguments: ["\"com.android.application\""]
+            }
+          ]
+        },
         block: {
           block: "block",
           body: [

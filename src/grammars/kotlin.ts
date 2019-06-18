@@ -34,7 +34,24 @@ export type KotlinBlocksDictionary = {
   [name: string]: KotlinBlock
 };
 
-const concatArrays = (a: number, b: number) => (d: any[][]) => [...d[a], ...d[b]];
+const concatArrays = (a: number, b: number, debug?: string) => (d: any[][]) => {
+  if (debug) {
+    console.log(debug, d);
+  }
+  return [...d[a], ...d[b]];
+}
+
+const concatToArray = (a: number, b: number, debug?: string) => (d: any[][]) => {
+  if (debug) {
+    console.log(debug, d);
+  }
+  return [d[a], ...d[b]];
+}
+
+const scriptPostProcess = (d: any[][]) => d[1].reduce<KotlinBlocksDictionary>((dict: KotlinBlocksDictionary, section: KotlinBlock) => {
+  dict[section.block] = section;
+  return dict;
+}, {})
 
 
 export interface Token { value: any; [key: string]: any };
@@ -58,12 +75,10 @@ export type NearleySymbol = string | { literal: any } | { test: (token: any) => 
 export var Lexer: Lexer | undefined = lexer;
 
 export var ParserRules: NearleyRule[] = [
-    {"name": "Script", "symbols": ["_", "Blocks", "_"], "postprocess":  (d: any[][]) => d[1].reduce<KotlinBlocksDictionary>((dict: KotlinBlocksDictionary, section: KotlinBlock) => {
-          dict[section.block] = section;
-          return dict;
-        }, {}) },
+    {"name": "Script", "symbols": ["_", "_"], "postprocess": () => ({})},
+    {"name": "Script", "symbols": ["_", "Blocks", "_"], "postprocess": scriptPostProcess},
     {"name": "Blocks", "symbols": ["Block"]},
-    {"name": "Blocks", "symbols": ["Block", "_", "Blocks"], "postprocess": concatArrays(0, 2)},
+    {"name": "Blocks", "symbols": ["Block", "_", "Blocks"], "postprocess": concatToArray(0, 2)},
     {"name": "Block", "symbols": ["BlockName", "_", {"literal":"{"}, "_", "Fields", "_", {"literal":"}"}], "postprocess": d => ({ block: d[0], body: d[4] })},
     {"name": "BlockName", "symbols": ["String"], "postprocess": id},
     {"name": "BlockName", "symbols": ["Identifier"], "postprocess": id},
@@ -79,10 +94,9 @@ export var ParserRules: NearleyRule[] = [
     {"name": "Arguments", "symbols": []},
     {"name": "Arguments", "symbols": ["Argument"]},
     {"name": "Arguments", "symbols": ["Argument", "_", {"literal":","}, "_", "Arguments"], "postprocess": concatArrays(0, 4)},
-    {"name": "Argument$subexpression$1", "symbols": ["Number"]},
-    {"name": "Argument$subexpression$1", "symbols": ["String"]},
-    {"name": "Argument$subexpression$1", "symbols": ["Identifier"]},
-    {"name": "Argument", "symbols": ["Argument$subexpression$1"], "postprocess": id},
+    {"name": "Argument", "symbols": ["Number"], "postprocess": id},
+    {"name": "Argument", "symbols": ["String"], "postprocess": id},
+    {"name": "Argument", "symbols": ["Identifier"], "postprocess": id},
     {"name": "Number", "symbols": [(lexer.has("number") ? {type: "number"} : number)], "postprocess": d => d[0].value},
     {"name": "String", "symbols": [(lexer.has("string") ? {type: "string"} : string)], "postprocess": d => d[0].value},
     {"name": "Identifier", "symbols": [(lexer.has("identifier") ? {type: "identifier"} : identifier)], "postprocess": d => d[0].value},

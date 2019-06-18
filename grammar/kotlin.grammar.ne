@@ -27,18 +27,33 @@ export type KotlinBlocksDictionary = {
   [name: string]: KotlinBlock
 };
 
-const concatArrays = (a: number, b: number) => (d: any[][]) => [...d[a], ...d[b]];
+const concatArrays = (a: number, b: number, debug?: string) => (d: any[][]) => {
+  if (debug) {
+    console.log(debug, d);
+  }
+  return [...d[a], ...d[b]];
+}
+
+const concatToArray = (a: number, b: number, debug?: string) => (d: any[][]) => {
+  if (debug) {
+    console.log(debug, d);
+  }
+  return [d[a], ...d[b]];
+}
+
+const scriptPostProcess = (d: any[][]) => d[1].reduce<KotlinBlocksDictionary>((dict: KotlinBlocksDictionary, section: KotlinBlock) => {
+  dict[section.block] = section;
+  return dict;
+}, {})
 
 %}
 
 @lexer lexer
 
-Script -> _ Blocks _ {% (d: any[][]) => d[1].reduce<KotlinBlocksDictionary>((dict: KotlinBlocksDictionary, section: KotlinBlock) => {
-  dict[section.block] = section;
-  return dict;
-}, {}) %}
+Script -> _ null _ {% () => ({}) %} 
+        | _ Blocks _ {% scriptPostProcess %}
 
-Blocks -> Block | Block _ Blocks {% concatArrays(0, 2) %}
+Blocks -> Block | Block _ Blocks {% concatToArray(0, 2) %}
 
 Block -> BlockName _ "{" _ Fields _ "}" {% d => ({ block: d[0], body: d[4] }) %}
 
@@ -53,7 +68,9 @@ Function -> Identifier "(" _ Arguments _ ")" {% d => ({ function: d[0], argument
 
 Arguments -> null | Argument | Argument _ "," _ Arguments {% concatArrays(0, 4) %}
 
-Argument -> ( Number | String | Identifier ) {% id %}
+Argument -> Number {% id %}
+          | String {% id %}
+          | Identifier {% id %}
 
 # Primitives
 
