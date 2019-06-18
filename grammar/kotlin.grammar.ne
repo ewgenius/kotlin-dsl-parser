@@ -1,111 +1,71 @@
 @preprocessor typescript
 
-@builtin "number.ne"
-@builtin "string.ne"
-@builtin "whitespace.ne"
-
 @{%
 
-type ParsingOuput = any[];
-type ParsingArrayOutput = any[][];
+const moo = require("moo");
 
-%}
+const lexer = moo.compile({
+  ws: { match: /[ \t]+/, lineBreaks: true },
+  number:  /0|[1-9][0-9]*/,
+  string:  /"(?:\\["\\]|[^\n"\\])*"/,
+  true: 'true',
+  false: 'false',
+  null: 'null',
+  "{": "{",
+  "}": "}",
+  "(": "(",
+  ")": ")",
+  identifier: /[a-zA-Z][a-zA-Z0-9\.]*/,
+});
 
-##
-## Base script structure
-##
-
-@{%
-
-export interface KotlinSection {
-  name: string;
+export interface KotlinBlock {
+  block: string;
   body: any[];
 };
 
-export type KotlinSectionsDictionary = {
-  [name: string]: KotlinSection
+export type KotlinBlocksDictionary = {
+  [name: string]: KotlinBlock
 };
 
-const sectionsPostProcessor = (d: ParsingArrayOutput) => d[1].reduce<KotlinSectionsDictionary>(
-  (dict: KotlinSectionsDictionary, section: KotlinSection) => {
-    dict[section.name] = section;
-    return dict;
-  }, {})
+const concatArrays = (a: number, b: number) => (d: any[][]) => {
+  // console.log(d);
+  return [...d[a], ...d[b]];
+}
 
 %}
 
-Programm -> _ SectionList _ {% sectionsPostProcessor %}
+@lexer lexer
 
-SectionList -> Section {% d => [d[0]] %}
-  | Section _ SectionList  {% d => [d[0], ...d[2]] %}
+Script -> _ Blocks _ {% (d: any[][]) => d[1].reduce<KotlinBlocksDictionary>((dict: KotlinBlocksDictionary, section: KotlinBlock) => {
+  dict[section.block] = section;
+  return dict;
+}, {}) %}
 
-Section -> BlockSection
+Blocks -> Block | Block _ Blocks {% concatArrays(0, 2) %}
 
-##
-## Plugins
-##
+Block -> BlockName _ "{" _ Fields _ "}" {% d => ({ block: d[0], body: d[4] }) %}
 
-@{%
+BlockName -> String {% id %}
+           | Identifier {% id %}
 
-const pluginsPostProcessor = (d: ParsingArrayOutput) => ({
-  name: "plugins",
-  plugins: []
-});
+Fields -> null | Field | Field _ Fields {% concatArrays(0, 2)  %}
 
-%}
+Field -> ( String | Identifier | Function | Block ) {% id %}
 
-# PluginsSection -> "plugins" _ "{" _ PluginList _ "}" {% pluginsPostProcessor %}
+Function -> Identifier "(" _ Arguments _ ")" {% d => ({ function: d[0], arguments: d[3] }) %}
 
-# PluginList -> Plugin | Plugin _ PluginList
+Arguments -> null | Argument | Argument _ "," _ Arguments {% concatArrays(0, 4) %}
 
-# Plugin -> IdCall
+Argument -> ( Number | String | Identifier ) {% id %}
 
-# IdCall -> "id(" string ")"
+# Primitives
 
-##
-## Block Sections
-##
+Number -> %number {% d => d[0].value %}
 
-BlockSection -> SectionName _ "{" _ FieldList _ "}" {% d => ({ name: d[0], body: d[4][0]}) %}
+String -> %string {% d => d[0].value %}
 
-SectionName -> Name {% d => d[0] %} | string {% d => d[0][0] %}
+Identifier -> %identifier {% d => d[0].value %}
 
-FieldList -> null | Field | Field __ FieldList
+_ -> null | %ws {% d => null %}
 
-Field -> Item | Section | Assigment
-
-Item ->  Name | Atom | Chain
-
-##
-## Primitives
-##
-
-Chain -> ChainSection |  ChainSection "." Chain
-
-ChainSection -> Name | Call
-
-Call -> Name Arguments {% d => ({ name: d[0].name, arguments: d[1] }) %}
-
-Arguments -> "(" ArgumentList ")" {% d => d[1] %}
-  | "(" ")" {% d => [] %}
-
-ArgumentList -> Argument | Argument _ "," _ ArgumentList
-
-Argument -> Atom | Assigment
-
-Assigment -> Name _ "=" _ Assigment
-
-Atom ->  number | string
-
-# variables, section names
-
-Name -> _name {% d => d[0] %}
-
-_name -> [a-zA-Z_] {% id %}
-	| _name [\w_] {% d => d[0] + d[1] %}
-
-# primitives
-
-string -> dqstring | sqstring | btstring
-
-number -> int | decimal
+__ -> %ws {% d => null %}

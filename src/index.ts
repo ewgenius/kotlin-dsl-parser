@@ -7,7 +7,8 @@ export class KotlinDSLParser {
   public parse(contents: string): any[] {
     this.parser.feed(contents);
     this.parser.finish();
-    return this.parser.results && this.parser.results;
+    // console.log(this.parser.results.length);
+    return this.parser.results && this.parser.results[0];
   }
 }
 

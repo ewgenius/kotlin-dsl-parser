@@ -5,7 +5,12 @@
   "author": "Evgenii Khramkov <evkhramk@microsoft.com>",
   "license": "MIT",
   "scripts": {
-    "compile": "nearleyc ./grammar/kotlin.grammar.ne -o ./src/grammars/kotlin.ts",
+    "nearley:compile": "nearleyc ./grammar/kotlin.grammar.ne -o ./src/grammars/kotlin.ts",
+    "nearley:railroad": "nearley-railroad ./grammar/kotlin.grammar.ne -o ./out/grammar.html",
+    "nearley:process": "yarn nearley:compile && yarn nearley:railroad",
+    "nearley:watch": "nodemon --exec \"yarn nearley:process\" ./grammar/kotlin.grammar.ne",
+    "nearley:test": "nearley-test ./build/src/grammars/kotlin.js",
+    "build": "tsc -p ./",
     "dev": "ts-node src/index.ts",
     "test": "jest"
   },
@@ -15,6 +20,7 @@
     "@types/node": "^12.0.7",
     "jest": "^24.8.0",
     "nearley": "^2.16.0",
+    "nodemon": "^1.19.1",
     "ts-jest": "^24.0.2",
     "ts-node": "^8.2.0",
     "typescript": "^3.5.1"
