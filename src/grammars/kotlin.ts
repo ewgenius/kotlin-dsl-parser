@@ -16,7 +16,7 @@ const lexer = moo.compile({
   ws: { match: /[ \t\n]+/, lineBreaks: true },
   comment: /\/\/.+$/,
   number:  /0|[1-9][0-9]*/,
-  string:  /"(?:\\["\\]|[^\n"\\])*"/,
+  string:  /["|`|'](?:\\["\\]|[^\n"\\])*["|`|']/,
   true: 'true',
   false: 'false',
   null: 'null',
@@ -109,7 +109,7 @@ export var ParserRules: NearleyRule[] = [
     {"name": "Expression", "symbols": ["Expression$subexpression$1"], "postprocess": id},
     {"name": "Number", "symbols": [(lexer.has("number") ? {type: "number"} : number)], "postprocess": d => Number(d[0].value)},
     {"name": "String", "symbols": [(lexer.has("string") ? {type: "string"} : string)], "postprocess":  d => {
-          if (d[0].value.startsWith(`"`)) {
+          if (d[0].value[0] === '"' || d[0].value[0] === '`' || d[0].value[0] === "'") {
             return d[0].value.slice(1, d[0].value.length - 1);
           }
           return d[0].value;

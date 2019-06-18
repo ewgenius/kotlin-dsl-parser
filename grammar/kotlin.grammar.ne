@@ -8,7 +8,7 @@ const lexer = moo.compile({
   ws: { match: /[ \t\n]+/, lineBreaks: true },
   comment: /\/\/.+$/,
   number:  /0|[1-9][0-9]*/,
-  string:  /"(?:\\["\\]|[^\n"\\])*"/,
+  string:  /["|`|'](?:\\["\\]|[^\n"\\])*["|`|']/,
   true: 'true',
   false: 'false',
   null: 'null',
@@ -85,7 +85,7 @@ Expression -> ( Argument | Function ) {% id %}
 Number -> %number {% d => Number(d[0].value) %}
 
 String -> %string {% d => {
-    if (d[0].value.startsWith(`"`)) {
+    if (d[0].value[0] === '"' || d[0].value[0] === '`' || d[0].value[0] === "'") {
       return d[0].value.slice(1, d[0].value.length - 1);
     }
     return d[0].value;

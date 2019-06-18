@@ -175,6 +175,21 @@ describe("Parser functional tests", () => {
     [
       `
       plugins {
+        \`java-library\`
+      }
+      `,
+      {
+        plugins: {
+          block: "plugins",
+          body: [
+            "java-library"
+          ]
+        }
+      }
+    ],
+    [
+      `
+      plugins {
         id("com.android.application")
       }
       block {
