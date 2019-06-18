@@ -39,6 +39,51 @@ describe("Parser functional tests", () => {
       { block: { block: "block", body: ["test", "one", "two"] } }
     ],
     [
+      `block { test.one.two }`,
+      { block: { block: "block", body: ["test.one.two"] } }
+    ],
+    [
+      `block { a = b }`,
+      {
+        block: {
+          block: "block",
+          body: [{ declaration: "a", value: "b" }]
+        }
+      }
+    ],
+    [
+      `block { a = "b" }`,
+      {
+        block: {
+          block: "block",
+          body: [{ declaration: "a", value: "b" }]
+        }
+      }
+    ],
+    [
+      `block { a = 1 }`,
+      {
+        block: {
+          block: "block",
+          body: [{ declaration: "a", value: 1 }]
+        }
+      }
+    ],
+    [
+      `block { a = function.call("test") }`,
+      {
+        block: {
+          block: "block",
+          body: [
+            {
+              declaration: "a",
+              value: { function: "function.call", arguments: ["test"] }
+            }
+          ]
+        }
+      }
+    ],
+    [
       `block { function() }`,
       {
         block: {

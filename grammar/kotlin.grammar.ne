@@ -17,6 +17,7 @@ const lexer = moo.compile({
   "(": "(",
   ")": ")",
   ",": ",",
+  "=": "=",
   identifier: /[a-zA-Z_][a-zA-Z0-9_\.]*/,
 });
 
@@ -64,7 +65,7 @@ BlockName -> String {% id %}
 
 Fields -> null | Field | Field _ Fields {% concatArrays(0, 2)  %}
 
-Field -> ( String | Identifier | Function | Block ) {% id %}
+Field -> ( String | Identifier | Function | Block | Declaration ) {% id %}
 
 Function -> Identifier "(" _ Arguments _ ")" {% d => ({ function: d[0], arguments: d[3] }) %}
 
@@ -73,6 +74,11 @@ Arguments -> null | Argument | Argument _ "," _ Arguments {% concatToArray(0, 4)
 Argument -> Number {% id %}
           | String {% id %}
           | Identifier {% id %}
+          | Declaration {% id %}
+
+Declaration -> Identifier _ "=" _ Expression {% d => ({ declaration: d[0], value: d[4][0] }) %}
+
+Expression -> ( Argument | Function ) {% id %}
 
 # Primitives
 

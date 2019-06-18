@@ -25,6 +25,7 @@ const lexer = moo.compile({
   "(": "(",
   ")": ")",
   ",": ",",
+  "=": "=",
   identifier: /[a-zA-Z_][a-zA-Z0-9_\.]*/,
 });
 
@@ -92,6 +93,7 @@ export var ParserRules: NearleyRule[] = [
     {"name": "Field$subexpression$1", "symbols": ["Identifier"]},
     {"name": "Field$subexpression$1", "symbols": ["Function"]},
     {"name": "Field$subexpression$1", "symbols": ["Block"]},
+    {"name": "Field$subexpression$1", "symbols": ["Declaration"]},
     {"name": "Field", "symbols": ["Field$subexpression$1"], "postprocess": id},
     {"name": "Function", "symbols": ["Identifier", {"literal":"("}, "_", "Arguments", "_", {"literal":")"}], "postprocess": d => ({ function: d[0], arguments: d[3] })},
     {"name": "Arguments", "symbols": []},
@@ -100,6 +102,11 @@ export var ParserRules: NearleyRule[] = [
     {"name": "Argument", "symbols": ["Number"], "postprocess": id},
     {"name": "Argument", "symbols": ["String"], "postprocess": id},
     {"name": "Argument", "symbols": ["Identifier"], "postprocess": id},
+    {"name": "Argument", "symbols": ["Declaration"], "postprocess": id},
+    {"name": "Declaration", "symbols": ["Identifier", "_", {"literal":"="}, "_", "Expression"], "postprocess": d => ({ declaration: d[0], value: d[4][0] })},
+    {"name": "Expression$subexpression$1", "symbols": ["Argument"]},
+    {"name": "Expression$subexpression$1", "symbols": ["Function"]},
+    {"name": "Expression", "symbols": ["Expression$subexpression$1"], "postprocess": id},
     {"name": "Number", "symbols": [(lexer.has("number") ? {type: "number"} : number)], "postprocess": d => Number(d[0].value)},
     {"name": "String", "symbols": [(lexer.has("string") ? {type: "string"} : string)], "postprocess":  d => {
           if (d[0].value.startsWith(`"`)) {
