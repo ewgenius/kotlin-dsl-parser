@@ -12,7 +12,7 @@ declare var ws: any;
 const moo = require("moo");
 
 const lexer = moo.compile({
-  ws: { match: /[ \t]+/, lineBreaks: true },
+  ws: { match: /[ \t\n]+/, lineBreaks: true },
   number:  /0|[1-9][0-9]*/,
   string:  /"(?:\\["\\]|[^\n"\\])*"/,
   true: 'true',
@@ -22,7 +22,7 @@ const lexer = moo.compile({
   "}": "}",
   "(": "(",
   ")": ")",
-  identifier: /[a-zA-Z][a-zA-Z0-9\.]*/,
+  identifier: /[a-zA-Z_][a-zA-Z0-9_\.]*/,
 });
 
 export interface KotlinBlock {
@@ -34,10 +34,7 @@ export type KotlinBlocksDictionary = {
   [name: string]: KotlinBlock
 };
 
-const concatArrays = (a: number, b: number) => (d: any[][]) => {
-  // console.log(d);
-  return [...d[a], ...d[b]];
-}
+const concatArrays = (a: number, b: number) => (d: any[][]) => [...d[a], ...d[b]];
 
 
 export interface Token { value: any; [key: string]: any };
