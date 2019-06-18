@@ -17,8 +17,6 @@ const lexer = moo.compile({
   comment: /\/\/.+$/,
   number:  /0|[1-9][0-9]*/,
   string:  /["|`|'](?:\\["\\]|[^\n"\\])*["|`|']/,
-  true: 'true',
-  false: 'false',
   null: 'null',
   "{": "{",
   "}": "}",
@@ -26,7 +24,7 @@ const lexer = moo.compile({
   ")": ")",
   ",": ",",
   "=": "=",
-  identifier: /[a-zA-Z_][a-zA-Z0-9_\.]*/,
+  identifier: { match: /[a-zA-Z_][a-zA-Z0-9_\.]*/ }
 });
 
 export interface KotlinBlock {
