@@ -6,6 +6,7 @@ const moo = require("moo");
 
 const lexer = moo.compile({
   ws: { match: /[ \t\n]+/, lineBreaks: true },
+  comment: /\/\/.+$/,
   number:  /0|[1-9][0-9]*/,
   string:  /"(?:\\["\\]|[^\n"\\])*"/,
   true: 'true',
@@ -87,6 +88,8 @@ String -> %string {% d => {
 
 Identifier -> %identifier {% d => d[0].value %}
 
-_ -> null | %ws {% d => null %}
+_ -> null | _ws {% d => null %} | _ws %comment _ws {% d => null %}
 
-__ -> %ws {% d => null %}
+_ws -> null | %ws {% d => null %}
+
+__ws -> %ws {% d => null %}

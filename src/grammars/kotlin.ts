@@ -6,6 +6,7 @@ function id(d: any[]): any { return d[0]; }
 declare var number: any;
 declare var string: any;
 declare var identifier: any;
+declare var comment: any;
 declare var ws: any;
 
 
@@ -13,6 +14,7 @@ const moo = require("moo");
 
 const lexer = moo.compile({
   ws: { match: /[ \t\n]+/, lineBreaks: true },
+  comment: /\/\/.+$/,
   number:  /0|[1-9][0-9]*/,
   string:  /"(?:\\["\\]|[^\n"\\])*"/,
   true: 'true',
@@ -108,8 +110,11 @@ export var ParserRules: NearleyRule[] = [
         },
     {"name": "Identifier", "symbols": [(lexer.has("identifier") ? {type: "identifier"} : identifier)], "postprocess": d => d[0].value},
     {"name": "_", "symbols": []},
-    {"name": "_", "symbols": [(lexer.has("ws") ? {type: "ws"} : ws)], "postprocess": d => null},
-    {"name": "__", "symbols": [(lexer.has("ws") ? {type: "ws"} : ws)], "postprocess": d => null}
+    {"name": "_", "symbols": ["_ws"], "postprocess": d => null},
+    {"name": "_", "symbols": ["_ws", (lexer.has("comment") ? {type: "comment"} : comment), "_ws"], "postprocess": d => null},
+    {"name": "_ws", "symbols": []},
+    {"name": "_ws", "symbols": [(lexer.has("ws") ? {type: "ws"} : ws)], "postprocess": d => null},
+    {"name": "__ws", "symbols": [(lexer.has("ws") ? {type: "ws"} : ws)], "postprocess": d => null}
 ];
 
 export var ParserStart: string = "Script";

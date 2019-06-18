@@ -5,8 +5,6 @@ import { KotlinDSLParser } from "../../src/";
 const testParsing = (input: string, expectedResult: any) => {
   const parser = new KotlinDSLParser();
   const result = parser.parse(input);
-
-  // expect(result.length).toEqual(1);
   expect(result).toEqual(expectedResult);
 };
 
@@ -143,6 +141,45 @@ describe("Parser functional tests", () => {
         }
       }
       `,
+      {
+        plugins: {
+          block: "plugins",
+          body: [
+            {
+              function: "id",
+              arguments: ["com.android.application"]
+            }
+          ]
+        },
+        block: {
+          block: "block",
+          body: [
+            "test",
+            { function: "function.call", arguments: [] },
+            {
+              block: "sub_block",
+              body: ["test", { function: "call2", arguments: [] }]
+            }
+          ]
+        }
+      }
+    ],
+    [
+      `
+    // comment
+    plugins {
+      id("com.android.application") // comment
+    }
+    block {
+      test // comment 123 test.
+      function.call( // )
+      )
+      sub_block {
+        test
+        call2() // test
+      }
+    }
+    `,
       {
         plugins: {
           block: "plugins",
