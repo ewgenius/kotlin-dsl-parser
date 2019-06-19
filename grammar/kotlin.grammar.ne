@@ -11,7 +11,8 @@ const rules = {
 const lexer = moo.states({
   main: {
     ws: { match: /[ \t\n]+/, lineBreaks: true },
-    comment: { match: /\/\/.+$/, next: "main" },
+    comment: { match: /\/\/.+$/, lineBreaks: true, next: "main" },
+    multicomment: { match: /\/\*.+\*\//, next: "main" },
     number:  { match: /0|[1-9][0-9]*/, next: "main" },
     string:  { match: /["|`|'](?:\\["\\]|[^\n"\\])*["|`|']/, next: "main" },
     null: { match: 'null', next: "main" },
@@ -21,6 +22,8 @@ const lexer = moo.states({
     ")": { match: ")", next: "main" },
     ",": { match: ",", next: "main" },
     "=": { match: "=", next: "main" },
+    "/*": { match: "/*", next: "main" },
+    "*/": { match: "*/", next: "main" },
     identifier: { match: /[a-zA-Z_][a-zA-Z0-9_\.<>]*/, next: "main" }
   }
 });
@@ -102,8 +105,11 @@ _ -> _ws {% d => null %} | Comments:+ _ws {% d => null %}
 
 __ -> %ws {% d => null %} | Comments:+ _ws {% d => null %}
 
-Comments -> _ws %comment {% d => null %}
+Comments -> Comment {% d => null %}
+          | MultilineComment {% d => null %}
 
-Comment -> %comment {% d => null %}
+MultilineComment -> _ws %multicomment {% d => null %}
+
+Comment -> _ws %comment {% d => null %}
 
 _ws -> null {% d => null %} | %ws {% d => null %}

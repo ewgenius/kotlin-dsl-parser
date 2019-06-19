@@ -7,6 +7,7 @@ declare var number: any;
 declare var string: any;
 declare var identifier: any;
 declare var ws: any;
+declare var multicomment: any;
 declare var comment: any;
 
 
@@ -19,7 +20,8 @@ const rules = {
 const lexer = moo.states({
   main: {
     ws: { match: /[ \t\n]+/, lineBreaks: true },
-    comment: { match: /\/\/.+$/, next: "main" },
+    comment: { match: /\/\/.+$/, lineBreaks: true, next: "main" },
+    multicomment: { match: /\/\*.+\*\//, next: "main" },
     number:  { match: /0|[1-9][0-9]*/, next: "main" },
     string:  { match: /["|`|'](?:\\["\\]|[^\n"\\])*["|`|']/, next: "main" },
     null: { match: 'null', next: "main" },
@@ -29,6 +31,8 @@ const lexer = moo.states({
     ")": { match: ")", next: "main" },
     ",": { match: ",", next: "main" },
     "=": { match: "=", next: "main" },
+    "/*": { match: "/*", next: "main" },
+    "*/": { match: "*/", next: "main" },
     identifier: { match: /[a-zA-Z_][a-zA-Z0-9_\.<>]*/, next: "main" }
   }
 });
@@ -120,8 +124,10 @@ export var ParserRules: NearleyRule[] = [
     {"name": "__$ebnf$1", "symbols": ["Comments"]},
     {"name": "__$ebnf$1", "symbols": ["__$ebnf$1", "Comments"], "postprocess": (d) => d[0].concat([d[1]])},
     {"name": "__", "symbols": ["__$ebnf$1", "_ws"], "postprocess": d => null},
-    {"name": "Comments", "symbols": ["_ws", (lexer.has("comment") ? {type: "comment"} : comment)], "postprocess": d => null},
-    {"name": "Comment", "symbols": [(lexer.has("comment") ? {type: "comment"} : comment)], "postprocess": d => null},
+    {"name": "Comments", "symbols": ["Comment"], "postprocess": d => null},
+    {"name": "Comments", "symbols": ["MultilineComment"], "postprocess": d => null},
+    {"name": "MultilineComment", "symbols": ["_ws", (lexer.has("multicomment") ? {type: "multicomment"} : multicomment)], "postprocess": d => null},
+    {"name": "Comment", "symbols": ["_ws", (lexer.has("comment") ? {type: "comment"} : comment)], "postprocess": d => null},
     {"name": "_ws", "symbols": [], "postprocess": d => null},
     {"name": "_ws", "symbols": [(lexer.has("ws") ? {type: "ws"} : ws)], "postprocess": d => null}
 ];

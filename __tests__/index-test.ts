@@ -351,6 +351,20 @@ describe.each([
         ]
       }
     }
+  ],
+  [
+    "multline comment",
+    `
+      /* test */
+      block {}
+    `,
+    {
+      block: {
+        name: "block",
+        type: "block",
+        body: []
+      }
+    }
   ]
 ])("Grammar tests", ((name: string, input: string, expected: any) => {
   it(`should parse: ${name}`, () => testParsing(input, expected));
