@@ -6,8 +6,8 @@ function id(d: any[]): any { return d[0]; }
 declare var number: any;
 declare var string: any;
 declare var identifier: any;
-declare var comment: any;
 declare var ws: any;
+declare var comment: any;
 
 
 const moo = require("moo");
@@ -90,7 +90,6 @@ export var ParserRules: NearleyRule[] = [
     {"name": "Field", "symbols": ["Function"], "postprocess": id},
     {"name": "Field", "symbols": ["Block"], "postprocess": id},
     {"name": "Field", "symbols": ["Declaration"], "postprocess": id},
-    {"name": "Field", "symbols": ["Comment"], "postprocess": id},
     {"name": "Function", "symbols": ["Identifier", {"literal":"("}, "_", "Arguments", "_", {"literal":")"}], "postprocess": d => ({ function: d[0], arguments: d[3] })},
     {"name": "Arguments", "symbols": []},
     {"name": "Arguments", "symbols": ["Argument"]},
@@ -111,12 +110,18 @@ export var ParserRules: NearleyRule[] = [
         }
         },
     {"name": "Identifier", "symbols": [(lexer.has("identifier") ? {type: "identifier"} : identifier)], "postprocess": d => d[0].value},
-    {"name": "Comment", "symbols": [(lexer.has("comment") ? {type: "comment"} : comment)], "postprocess": d => null},
     {"name": "_", "symbols": ["_ws"], "postprocess": d => null},
-    {"name": "_", "symbols": ["_ws", (lexer.has("comment") ? {type: "comment"} : comment), "_ws"], "postprocess": d => null},
+    {"name": "_$ebnf$1", "symbols": ["Comments"]},
+    {"name": "_$ebnf$1", "symbols": ["_$ebnf$1", "Comments"], "postprocess": (d) => d[0].concat([d[1]])},
+    {"name": "_", "symbols": ["_$ebnf$1", "_ws"], "postprocess": d => null},
+    {"name": "__", "symbols": [(lexer.has("ws") ? {type: "ws"} : ws)], "postprocess": d => null},
+    {"name": "__$ebnf$1", "symbols": ["Comments"]},
+    {"name": "__$ebnf$1", "symbols": ["__$ebnf$1", "Comments"], "postprocess": (d) => d[0].concat([d[1]])},
+    {"name": "__", "symbols": ["__$ebnf$1", "_ws"], "postprocess": d => null},
+    {"name": "Comments", "symbols": ["_ws", (lexer.has("comment") ? {type: "comment"} : comment)], "postprocess": d => null},
+    {"name": "Comment", "symbols": [(lexer.has("comment") ? {type: "comment"} : comment)], "postprocess": d => null},
     {"name": "_ws", "symbols": [], "postprocess": d => null},
-    {"name": "_ws", "symbols": [(lexer.has("ws") ? {type: "ws"} : ws)], "postprocess": d => null},
-    {"name": "__", "symbols": [(lexer.has("ws") ? {type: "ws"} : ws)], "postprocess": d => null}
+    {"name": "_ws", "symbols": [(lexer.has("ws") ? {type: "ws"} : ws)], "postprocess": d => null}
 ];
 
 export var ParserStart: string = "Script";

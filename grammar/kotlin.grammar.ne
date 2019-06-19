@@ -60,14 +60,13 @@ Block -> BlockName _ "{" _ Fields _ "}" {% d => ({ block: d[0], body: d[4] }) %}
 BlockName -> String {% id %}
            | Identifier {% id %}
 
-Fields -> Field | Field __ Fields  {% concatToArray(0, 2) %}
+Fields -> Field | Field __ Fields {% concatToArray(0, 2) %}
 
 Field -> String {% id %}
        | Identifier {% id %}
        | Function {% id %}
        | Block {% id %}
        | Declaration {% id %}
-       | Comment {% id %}
 
 Function -> Identifier "(" _ Arguments _ ")" {% d => ({ function: d[0], arguments: d[3] }) %}
 
@@ -97,10 +96,12 @@ String -> %string {% d => {
 
 Identifier -> %identifier {% d => d[0].value %}
 
+_ -> _ws {% d => null %} | Comments:+ _ws {% d => null %}
+
+__ -> %ws {% d => null %} | Comments:+ _ws {% d => null %}
+
+Comments -> _ws %comment {% d => null %}
+
 Comment -> %comment {% d => null %}
 
-_ -> _ws {% d => null %} | _ws %comment _ws {% d => null %}
-
 _ws -> null {% d => null %} | %ws {% d => null %}
-
-__ -> %ws {% d => null %}
