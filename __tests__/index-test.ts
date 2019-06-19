@@ -11,10 +11,19 @@ const testParsing = (input: string, expectedResult: any) => {
 
 describe("Grammar tests", () => {
   describe.each([
-    [`block{}`, { block: { block: "block", body: [] } }],
-    [`block {}`, { block: { block: "block", body: [] } }],
-    [`block { }`, { block: { block: "block", body: [] } }],
+    ["empty block", `block{}`, { block: { block: "block", body: [] } }],
+    ["empty block", `block {}`, { block: { block: "block", body: [] } }],
+    ["empty block", `block { }`, { block: { block: "block", body: [] } }],
     [
+      "two empty blocks inline",
+      `block1 { } block2 { }`,
+      {
+        block1: { block: "block1", body: [] },
+        block2: { block: "block2", body: [] }
+      }
+    ],
+    [
+      "two empty blocks multiline",
       `
       block1 { }
       block2 { }
@@ -25,20 +34,27 @@ describe("Grammar tests", () => {
       }
     ],
     [
-      `
-      block1 { }
-      block2 { }
-      `,
-      {
-        block1: { block: "block1", body: [] },
-        block2: { block: "block2", body: [] }
-      }
+      "chanined name block",
+      `test.block { }`,
+      { "test.block": { block: "test.block", body: [] } }
     ],
-    [`test.block { }`, { "test.block": { block: "test.block", body: [] } }],
-    [`block { }`, { block: { block: "block", body: [] } }],
-    [`block {test}`, { block: { block: "block", body: ["test"] } }],
-    [`block { test }`, { block: { block: "block", body: ["test"] } }],
     [
+      "block with field",
+      `block {test}`,
+      { block: { block: "block", body: ["test"] } }
+    ],
+    [
+      "block with field",
+      `block { test }`,
+      { block: { block: "block", body: ["test"] } }
+    ],
+    [
+      "block with inline fields",
+      `block { test one two }`,
+      { block: { block: "block", body: ["test", "one", "two"] } }
+    ],
+    [
+      "block with multyline fields",
       `block {
         test
         one
@@ -47,10 +63,12 @@ describe("Grammar tests", () => {
       { block: { block: "block", body: ["test", "one", "two"] } }
     ],
     [
+      "block with chained field",
       `block { test.one.two }`,
       { block: { block: "block", body: ["test.one.two"] } }
     ],
     [
+      "block with expression a = b",
       `block { a = b }`,
       {
         block: {
@@ -60,6 +78,7 @@ describe("Grammar tests", () => {
       }
     ],
     [
+      'block with inline expression a = "b"',
       `block { a = "b" }`,
       {
         block: {
@@ -69,6 +88,7 @@ describe("Grammar tests", () => {
       }
     ],
     [
+      "block with inline expression a = 1",
       `block { a = 1 }`,
       {
         block: {
@@ -78,6 +98,7 @@ describe("Grammar tests", () => {
       }
     ],
     [
+      "block with function call and argument",
       `block { a = function.call("test") }`,
       {
         block: {
@@ -92,6 +113,7 @@ describe("Grammar tests", () => {
       }
     ],
     [
+      "block with empty function call",
       `block { function() }`,
       {
         block: {
@@ -101,6 +123,7 @@ describe("Grammar tests", () => {
       }
     ],
     [
+      "block with chained function call",
       `block { function.call() }`,
       {
         block: {
@@ -110,6 +133,7 @@ describe("Grammar tests", () => {
       }
     ],
     [
+      "block with function call multiple arguments",
       `block { function.call(1,2,"Test") }`,
       {
         block: {
@@ -119,6 +143,7 @@ describe("Grammar tests", () => {
       }
     ],
     [
+      "block with function call multiline arguments",
       `block { function.call(
         1,
         2  ,  "Test"
@@ -131,6 +156,7 @@ describe("Grammar tests", () => {
       }
     ],
     [
+      "block different fields",
       `
       block {
         test
@@ -145,17 +171,7 @@ describe("Grammar tests", () => {
       }
     ],
     [
-      `
-      block { function.call("test") }
-      `,
-      {
-        block: {
-          block: "block",
-          body: [{ function: "function.call", arguments: ["test"] }]
-        }
-      }
-    ],
-    [
+      "block with sub-block",
       `
       block {
         test
@@ -181,6 +197,7 @@ describe("Grammar tests", () => {
       }
     ],
     [
+      "quotes",
       `
       plugins {
         \`java-library\`
@@ -194,6 +211,7 @@ describe("Grammar tests", () => {
       }
     ],
     [
+      "complex example",
       `
       plugins {
         id("com.android.application")
@@ -231,27 +249,28 @@ describe("Grammar tests", () => {
       }
     ],
     [
+      "complex example with comments",
       `
-    // comment
-    plugins {
-      id("com.android.application") // comment
-    }
-    block {
-      test // comment 123 test.
-      function.call()
-      sub_block {
-        test
-        call2() // test
+      // comment
+      plugins {
+        id("com.android.application") // comment
       }
-    }
-    `,
+      block {
+        test // comment 123 test.
+        function.call()
+        sub_block {
+          test
+          call2() // test
+        }
+      }
+      `,
       {
         plugins: {
           block: "plugins",
           body: [
             {
               function: "id",
-              arguments: ["com.android.application"],
+              arguments: ["com.android.application"]
             }
           ]
         },
@@ -268,7 +287,9 @@ describe("Grammar tests", () => {
         }
       }
     ]
-  ])("test", ((input: string, expected: any) => {
-    it(`should parse: ${input}`, () => testParsing(input, expected));
+  ])("test", ((name: string, input: string, expected: any) => {
+    it(`should parse: ${name}`, () => testParsing(input, expected));
   }) as any);
 });
+
+describe("Real examples test", () => {});
