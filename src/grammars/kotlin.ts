@@ -29,12 +29,13 @@ const lexer = moo.states({
     ")": { match: ")", next: "main" },
     ",": { match: ",", next: "main" },
     "=": { match: "=", next: "main" },
-    identifier: { match: /[a-zA-Z_][a-zA-Z0-9_\.]*/, next: "main" }
+    identifier: { match: /[a-zA-Z_][a-zA-Z0-9_\.<>]*/, next: "main" }
   }
 });
 
 export interface KotlinBlock {
-  block: string;
+  name: string;
+  type: string;
   body: any[];
 };
 
@@ -50,7 +51,7 @@ const concatToArray = (a: number, b: number, debug?: string) => (d: any[][]) => 
 }
 
 const scriptPostProcess = (d: any[][]) => d[1].reduce<KotlinBlocksDictionary>((dict: KotlinBlocksDictionary, section: KotlinBlock) => {
-  dict[section.block] = section;
+  dict[section.name] = section;
   return dict;
 }, {})
 
@@ -79,18 +80,18 @@ export var ParserRules: NearleyRule[] = [
     {"name": "Script", "symbols": ["_", "Blocks", "_"], "postprocess": scriptPostProcess},
     {"name": "Blocks", "symbols": ["Block"]},
     {"name": "Blocks", "symbols": ["Block", "_", "Blocks"], "postprocess": concatToArray(0, 2)},
-    {"name": "Block", "symbols": ["BlockName", "_", {"literal":"{"}, "_", "Fields", "_", {"literal":"}"}], "postprocess": d => ({ block: d[0], body: d[4] })},
-    {"name": "Block", "symbols": ["BlockName", "_", {"literal":"{"}, "_", {"literal":"}"}], "postprocess": d => ({ block: d[0], body: [] })},
+    {"name": "Block", "symbols": ["BlockName", "_", {"literal":"{"}, "_", "Fields", "_", {"literal":"}"}], "postprocess": d => ({ name: d[0], type: "block", body: d[4] })},
+    {"name": "Block", "symbols": ["BlockName", "_", {"literal":"{"}, "_", {"literal":"}"}], "postprocess": d => ({ name: d[0], type: "block", body: [] })},
+    {"name": "Block", "symbols": ["BlockName", {"literal":"("}, "_", "Arguments", "_", {"literal":")"}], "postprocess": d => ({ name: d[0], type: "function", arguments: d[3] })},
     {"name": "BlockName", "symbols": ["String"], "postprocess": id},
     {"name": "BlockName", "symbols": ["Identifier"], "postprocess": id},
     {"name": "Fields", "symbols": ["Field"]},
     {"name": "Fields", "symbols": ["Field", "__", "Fields"], "postprocess": concatToArray(0, 2)},
     {"name": "Field", "symbols": ["String"], "postprocess": id},
     {"name": "Field", "symbols": ["Identifier"], "postprocess": id},
-    {"name": "Field", "symbols": ["Function"], "postprocess": id},
     {"name": "Field", "symbols": ["Block"], "postprocess": id},
     {"name": "Field", "symbols": ["Declaration"], "postprocess": id},
-    {"name": "Function", "symbols": ["Identifier", {"literal":"("}, "_", "Arguments", "_", {"literal":")"}], "postprocess": d => ({ function: d[0], arguments: d[3] })},
+    {"name": "Function", "symbols": ["BlockName", {"literal":"("}, "_", "Arguments", "_", {"literal":")"}], "postprocess": d => ({ name: d[0], type: "function", arguments: d[3] })},
     {"name": "Arguments", "symbols": []},
     {"name": "Arguments", "symbols": ["Argument"]},
     {"name": "Arguments", "symbols": ["Argument", "_", {"literal":","}, "_", "Arguments"], "postprocess": concatToArray(0, 4)},

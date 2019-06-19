@@ -21,12 +21,13 @@ const lexer = moo.states({
     ")": { match: ")", next: "main" },
     ",": { match: ",", next: "main" },
     "=": { match: "=", next: "main" },
-    identifier: { match: /[a-zA-Z_][a-zA-Z0-9_\.]*/, next: "main" }
+    identifier: { match: /[a-zA-Z_][a-zA-Z0-9_\.<>]*/, next: "main" }
   }
 });
 
 export interface KotlinBlock {
-  block: string;
+  name: string;
+  type: string;
   body: any[];
 };
 
@@ -42,7 +43,7 @@ const concatToArray = (a: number, b: number, debug?: string) => (d: any[][]) => 
 }
 
 const scriptPostProcess = (d: any[][]) => d[1].reduce<KotlinBlocksDictionary>((dict: KotlinBlocksDictionary, section: KotlinBlock) => {
-  dict[section.block] = section;
+  dict[section.name] = section;
   return dict;
 }, {})
 
@@ -54,8 +55,9 @@ Script -> _ Blocks _ {% scriptPostProcess %}
 
 Blocks -> Block | Block _ Blocks {% concatToArray(0, 2) %}
 
-Block -> BlockName _ "{" _ Fields _ "}" {% d => ({ block: d[0], body: d[4] }) %}
-       | BlockName _ "{" _ "}" {% d => ({ block: d[0], body: [] }) %}
+Block -> BlockName _ "{" _ Fields _ "}" {% d => ({ name: d[0], type: "block", body: d[4] }) %}
+       | BlockName _ "{" _ "}" {% d => ({ name: d[0], type: "block", body: [] }) %}
+       | BlockName "(" _ Arguments _ ")" {% d => ({ name: d[0], type: "function", arguments: d[3] }) %}
 
 BlockName -> String {% id %}
            | Identifier {% id %}
@@ -64,11 +66,10 @@ Fields -> Field | Field __ Fields {% concatToArray(0, 2) %}
 
 Field -> String {% id %}
        | Identifier {% id %}
-       | Function {% id %}
        | Block {% id %}
        | Declaration {% id %}
 
-Function -> Identifier "(" _ Arguments _ ")" {% d => ({ function: d[0], arguments: d[3] }) %}
+Function -> BlockName "(" _ Arguments _ ")" {% d => ({ name: d[0], type: "function", arguments: d[3] }) %}
 
 Arguments -> null | Argument | Argument _ "," _ Arguments {% concatToArray(0, 4) %}
 

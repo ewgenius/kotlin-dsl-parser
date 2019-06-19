@@ -17,15 +17,43 @@ const tryParsing = (file: string) => {
 };
 
 describe.each([
-  ["empty block", `block{}`, { block: { block: "block", body: [] } }],
-  ["empty block", `block {}`, { block: { block: "block", body: [] } }],
-  ["empty block", `block { }`, { block: { block: "block", body: [] } }],
+  [
+    "empty block",
+    `block{}`,
+    { block: { type: "block", name: "block", body: [] } }
+  ],
+  [
+    "empty block",
+    `block {}`,
+    { block: { type: "block", name: "block", body: [] } }
+  ],
+  [
+    "empty block",
+    `block { }`,
+    { block: { type: "block", name: "block", body: [] } }
+  ],
+  [
+    "apply call",
+    `apply(plugin = "java-library")`,
+    {
+      apply: {
+        name: "apply",
+        type: "function",
+        arguments: [
+          {
+            declaration: "plugin",
+            value: "java-library"
+          }
+        ]
+      }
+    }
+  ],
   [
     "two empty blocks inline",
     `block1 { } block2 { }`,
     {
-      block1: { block: "block1", body: [] },
-      block2: { block: "block2", body: [] }
+      block1: { type: "block", name: "block1", body: [] },
+      block2: { type: "block", name: "block2", body: [] }
     }
   ],
   [
@@ -35,29 +63,29 @@ describe.each([
       block2 { }
       `,
     {
-      block1: { block: "block1", body: [] },
-      block2: { block: "block2", body: [] }
+      block1: { type: "block", name: "block1", body: [] },
+      block2: { type: "block", name: "block2", body: [] }
     }
   ],
   [
     "chanined name block",
     `test.block { }`,
-    { "test.block": { block: "test.block", body: [] } }
+    { "test.block": { type: "block", name: "test.block", body: [] } }
   ],
   [
     "block with field",
     `block {test}`,
-    { block: { block: "block", body: ["test"] } }
+    { block: { type: "block", name: "block", body: ["test"] } }
   ],
   [
     "block with field",
     `block { test }`,
-    { block: { block: "block", body: ["test"] } }
+    { block: { type: "block", name: "block", body: ["test"] } }
   ],
   [
     "block with inline fields",
     `block { test one two }`,
-    { block: { block: "block", body: ["test", "one", "two"] } }
+    { block: { type: "block", name: "block", body: ["test", "one", "two"] } }
   ],
   [
     "block with multyline fields",
@@ -66,19 +94,20 @@ describe.each([
         one
         two
       }`,
-    { block: { block: "block", body: ["test", "one", "two"] } }
+    { block: { type: "block", name: "block", body: ["test", "one", "two"] } }
   ],
   [
     "block with chained field",
     `block { test.one.two }`,
-    { block: { block: "block", body: ["test.one.two"] } }
+    { block: { type: "block", name: "block", body: ["test.one.two"] } }
   ],
   [
     "block with expression a = b",
     `block { a = b }`,
     {
       block: {
-        block: "block",
+        type: "block",
+        name: "block",
         body: [{ declaration: "a", value: "b" }]
       }
     }
@@ -88,7 +117,8 @@ describe.each([
     `block { a = "b" }`,
     {
       block: {
-        block: "block",
+        type: "block",
+        name: "block",
         body: [{ declaration: "a", value: "b" }]
       }
     }
@@ -98,7 +128,8 @@ describe.each([
     `block { a = 1 }`,
     {
       block: {
-        block: "block",
+        type: "block",
+        name: "block",
         body: [{ declaration: "a", value: 1 }]
       }
     }
@@ -108,11 +139,16 @@ describe.each([
     `block { a = function.call("test") }`,
     {
       block: {
-        block: "block",
+        type: "block",
+        name: "block",
         body: [
           {
             declaration: "a",
-            value: { function: "function.call", arguments: ["test"] }
+            value: {
+              type: "function",
+              name: "function.call",
+              arguments: ["test"]
+            }
           }
         ]
       }
@@ -123,8 +159,9 @@ describe.each([
     `block { function() }`,
     {
       block: {
-        block: "block",
-        body: [{ function: "function", arguments: [] }]
+        type: "block",
+        name: "block",
+        body: [{ type: "function", name: "function", arguments: [] }]
       }
     }
   ],
@@ -133,8 +170,9 @@ describe.each([
     `block { function.call() }`,
     {
       block: {
-        block: "block",
-        body: [{ function: "function.call", arguments: [] }]
+        type: "block",
+        name: "block",
+        body: [{ type: "function", name: "function.call", arguments: [] }]
       }
     }
   ],
@@ -143,8 +181,11 @@ describe.each([
     `block { function.call(1,2,"Test") }`,
     {
       block: {
-        block: "block",
-        body: [{ function: "function.call", arguments: [1, 2, "Test"] }]
+        type: "block",
+        name: "block",
+        body: [
+          { type: "function", name: "function.call", arguments: [1, 2, "Test"] }
+        ]
       }
     }
   ],
@@ -156,8 +197,11 @@ describe.each([
       ) }`,
     {
       block: {
-        block: "block",
-        body: [{ function: "function.call", arguments: [1, 2, "Test"] }]
+        type: "block",
+        name: "block",
+        body: [
+          { type: "function", name: "function.call", arguments: [1, 2, "Test"] }
+        ]
       }
     }
   ],
@@ -171,8 +215,12 @@ describe.each([
       `,
     {
       block: {
-        block: "block",
-        body: ["test", { function: "function.call", arguments: [] }]
+        type: "block",
+        name: "block",
+        body: [
+          "test",
+          { type: "function", name: "function.call", arguments: [] }
+        ]
       }
     }
   ],
@@ -190,13 +238,15 @@ describe.each([
       `,
     {
       block: {
-        block: "block",
+        type: "block",
+        name: "block",
         body: [
           "test",
-          { function: "function.call", arguments: [] },
+          { type: "function", name: "function.call", arguments: [] },
           {
-            block: "sub_block",
-            body: ["test", { function: "call2", arguments: [] }]
+            type: "block",
+            name: "sub_block",
+            body: ["test", { type: "function", name: "call2", arguments: [] }]
           }
         ]
       }
@@ -211,7 +261,8 @@ describe.each([
       `,
     {
       plugins: {
-        block: "plugins",
+        type: "block",
+        name: "plugins",
         body: ["java-library"]
       }
     }
@@ -233,22 +284,26 @@ describe.each([
       `,
     {
       plugins: {
-        block: "plugins",
+        type: "block",
+        name: "plugins",
         body: [
           {
-            function: "id",
+            type: "function",
+            name: "id",
             arguments: ["com.android.application"]
           }
         ]
       },
       block: {
-        block: "block",
+        type: "block",
+        name: "block",
         body: [
           "test",
-          { function: "function.call", arguments: [] },
+          { type: "function", name: "function.call", arguments: [] },
           {
-            block: "sub_block",
-            body: ["test", { function: "call2", arguments: [] }]
+            type: "block",
+            name: "sub_block",
+            body: ["test", { type: "function", name: "call2", arguments: [] }]
           }
         ]
       }
@@ -272,22 +327,26 @@ describe.each([
       `,
     {
       plugins: {
-        block: "plugins",
+        type: "block",
+        name: "plugins",
         body: [
           {
-            function: "id",
+            type: "function",
+            name: "id",
             arguments: ["com.android.application"]
           }
         ]
       },
       block: {
-        block: "block",
+        type: "block",
+        name: "block",
         body: [
           "test",
-          { function: "function.call", arguments: [] },
+          { type: "function", name: "function.call", arguments: [] },
           {
-            block: "sub_block",
-            body: ["test", { function: "call2", arguments: [] }]
+            type: "block",
+            name: "sub_block",
+            body: ["test", { type: "function", name: "call2", arguments: [] }]
           }
         ]
       }
@@ -298,7 +357,10 @@ describe.each([
 }) as any);
 
 describe("Real examples test", () => {
-  const filesList = ["./fixtures/type-safe.gradle.kts"];
+  const filesList = [
+    "./fixtures/type-safe.gradle.kts",
+    "./fixtures/non-type-safe.gradle.kts"
+  ];
 
   describe.each(filesList.map(file => [file]))(
     "Real examples test",
