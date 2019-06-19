@@ -36,14 +36,14 @@ export type KotlinBlocksDictionary = {
 
 const concatArrays = (a: number, b: number, debug?: string) => (d: any[][]) => {
   if (debug) {
-    console.log(debug, d);
+    console.log(debug, d[a], d[b]);
   }
   return [...d[a], ...d[b]];
 }
 
 const concatToArray = (a: number, b: number, debug?: string) => (d: any[][]) => {
   if (debug) {
-    console.log(debug, d);
+    console.log(debug, d[a], d[b]);
   }
   return [d[a], ...d[b]];
 }
@@ -61,14 +61,19 @@ Script -> _ Blocks _ {% scriptPostProcess %}
 
 Blocks -> Block | Block _ Blocks {% concatToArray(0, 2) %}
 
-Block -> BlockName _ "{" _ Fields _ "}" {% d => ({ block: d[0], body: d[4].length ? d[4][0] : d[4] }) %}
+Block -> BlockName _ "{" _ Fields _ "}" {% d => ({ block: d[0], body: d[4] }) %}
 
 BlockName -> String {% id %}
            | Identifier {% id %}
 
-Fields -> null | Field | Field _ "\n" _ Fields {% concatArrays(0, 4, "Field") %}
+Fields -> null | Field | Field __ Fields {% concatToArray(0, 2) %}
 
-Field -> ( String | Identifier | Function | Block | Declaration ) {% id %}
+Field -> String {% id %}
+       | Identifier {% id %}
+       | Function {% id %}
+       | Block {% id %}
+       | Declaration {% id %}
+       | Comment {% id %}
 
 Function -> Identifier "(" _ Arguments _ ")" {% d => ({ function: d[0], arguments: d[3] }) %}
 
@@ -96,6 +101,8 @@ String -> %string {% d => {
 %}
 
 Identifier -> %identifier {% d => d[0].value %}
+
+Comment -> %comment {% d => null %}
 
 _ -> _ws {% d => null %} | _ws %comment _ws {% d => null %}
 

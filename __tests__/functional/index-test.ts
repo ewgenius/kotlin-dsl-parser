@@ -251,18 +251,20 @@ describe("Parser functional tests", () => {
           body: [
             {
               function: "id",
-              arguments: ["com.android.application"]
-            }
+              arguments: ["com.android.application"],
+            },
+            null
           ]
         },
         block: {
           block: "block",
           body: [
             "test",
+            null,
             { function: "function.call", arguments: [] },
             {
               block: "sub_block",
-              body: ["test", { function: "call2", arguments: [] }]
+              body: ["test", { function: "call2", arguments: [] }, null]
             }
           ]
         }

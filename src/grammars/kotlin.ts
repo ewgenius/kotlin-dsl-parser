@@ -44,14 +44,14 @@ export type KotlinBlocksDictionary = {
 
 const concatArrays = (a: number, b: number, debug?: string) => (d: any[][]) => {
   if (debug) {
-    console.log(debug, d);
+    console.log(debug, d[a], d[b]);
   }
   return [...d[a], ...d[b]];
 }
 
 const concatToArray = (a: number, b: number, debug?: string) => (d: any[][]) => {
   if (debug) {
-    console.log(debug, d);
+    console.log(debug, d[a], d[b]);
   }
   return [d[a], ...d[b]];
 }
@@ -86,18 +86,18 @@ export var ParserRules: NearleyRule[] = [
     {"name": "Script", "symbols": ["_", "Blocks", "_"], "postprocess": scriptPostProcess},
     {"name": "Blocks", "symbols": ["Block"]},
     {"name": "Blocks", "symbols": ["Block", "_", "Blocks"], "postprocess": concatToArray(0, 2)},
-    {"name": "Block", "symbols": ["BlockName", "_", {"literal":"{"}, "_", "Fields", "_", {"literal":"}"}], "postprocess": d => ({ block: d[0], body: d[4].length ? d[4][0] : d[4] })},
+    {"name": "Block", "symbols": ["BlockName", "_", {"literal":"{"}, "_", "Fields", "_", {"literal":"}"}], "postprocess": d => ({ block: d[0], body: d[4] })},
     {"name": "BlockName", "symbols": ["String"], "postprocess": id},
     {"name": "BlockName", "symbols": ["Identifier"], "postprocess": id},
     {"name": "Fields", "symbols": []},
     {"name": "Fields", "symbols": ["Field"]},
-    {"name": "Fields", "symbols": ["Field", "_", {"literal":"\n"}, "_", "Fields"], "postprocess": concatArrays(0, 4, "Field")},
-    {"name": "Field$subexpression$1", "symbols": ["String"]},
-    {"name": "Field$subexpression$1", "symbols": ["Identifier"]},
-    {"name": "Field$subexpression$1", "symbols": ["Function"]},
-    {"name": "Field$subexpression$1", "symbols": ["Block"]},
-    {"name": "Field$subexpression$1", "symbols": ["Declaration"]},
-    {"name": "Field", "symbols": ["Field$subexpression$1"], "postprocess": id},
+    {"name": "Fields", "symbols": ["Field", "__", "Fields"], "postprocess": concatToArray(0, 2)},
+    {"name": "Field", "symbols": ["String"], "postprocess": id},
+    {"name": "Field", "symbols": ["Identifier"], "postprocess": id},
+    {"name": "Field", "symbols": ["Function"], "postprocess": id},
+    {"name": "Field", "symbols": ["Block"], "postprocess": id},
+    {"name": "Field", "symbols": ["Declaration"], "postprocess": id},
+    {"name": "Field", "symbols": ["Comment"], "postprocess": id},
     {"name": "Function", "symbols": ["Identifier", {"literal":"("}, "_", "Arguments", "_", {"literal":")"}], "postprocess": d => ({ function: d[0], arguments: d[3] })},
     {"name": "Arguments", "symbols": []},
     {"name": "Arguments", "symbols": ["Argument"]},
@@ -119,6 +119,7 @@ export var ParserRules: NearleyRule[] = [
         }
         },
     {"name": "Identifier", "symbols": [(lexer.has("identifier") ? {type: "identifier"} : identifier)], "postprocess": d => d[0].value},
+    {"name": "Comment", "symbols": [(lexer.has("comment") ? {type: "comment"} : comment)], "postprocess": d => null},
     {"name": "_", "symbols": ["_ws"], "postprocess": d => null},
     {"name": "_", "symbols": ["_ws", (lexer.has("comment") ? {type: "comment"} : comment), "_ws"], "postprocess": d => null},
     {"name": "_ws", "symbols": [], "postprocess": d => null},
