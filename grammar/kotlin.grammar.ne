@@ -57,10 +57,11 @@ Blocks -> Block | Block _ Blocks {% concatToArray(0, 2) %}
 
 Block -> BlockName _ "{" _ Fields _ "}" {% d => ({ name: d[0], type: "block", body: d[4] }) %}
        | BlockName _ "{" _ "}" {% d => ({ name: d[0], type: "block", body: [] }) %}
-       | BlockName "(" _ Arguments _ ")" {% d => ({ name: d[0], type: "function", arguments: d[3] }) %}
+       | BlockName _ "(" _ Arguments _ ")" {% d => ({ name: d[0], type: "function", arguments: d[4] }) %}
 
 BlockName -> String {% id %}
            | Identifier {% id %}
+           | Identifier _ "(" _ String _ ")" {% d => d[4] %}
 
 Fields -> Field | Field __ Fields {% concatToArray(0, 2) %}
 
@@ -69,7 +70,7 @@ Field -> String {% id %}
        | Block {% id %}
        | Declaration {% id %}
 
-Function -> BlockName "(" _ Arguments _ ")" {% d => ({ name: d[0], type: "function", arguments: d[3] }) %}
+Function -> BlockName _ "(" _ Arguments _ ")" {% d => ({ name: d[0], type: "function", arguments: d[4] }) %}
 
 Arguments -> null | Argument | Argument _ "," _ Arguments {% concatToArray(0, 4) %}
 
