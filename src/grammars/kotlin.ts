@@ -12,19 +12,25 @@ declare var ws: any;
 
 const moo = require("moo");
 
-const lexer = moo.compile({
-  ws: { match: /[ \t\n]+/, lineBreaks: true },
-  comment: /\/\/.+$/,
-  number:  /0|[1-9][0-9]*/,
-  string:  /["|`|'](?:\\["\\]|[^\n"\\])*["|`|']/,
-  null: 'null',
-  "{": "{",
-  "}": "}",
-  "(": "(",
-  ")": ")",
-  ",": ",",
-  "=": "=",
-  identifier: { match: /[a-zA-Z_][a-zA-Z0-9_\.]*/ }
+const rules = {
+
+};
+
+const lexer = moo.states({
+  main: {
+    ws: { match: /[ \t\n]+/, lineBreaks: true },
+    comment: { match: /\/\/.+$/, next: "main" },
+    number:  { match: /0|[1-9][0-9]*/, next: "main" },
+    string:  { match: /["|`|'](?:\\["\\]|[^\n"\\])*["|`|']/, next: "main" },
+    null: { match: 'null', next: "main" },
+    "{": { match: "{", next: "main" },
+    "}": { match: "}", next: "main" },
+    "(": { match: "(", next: "main" },
+    ")": { match: ")", next: "main" },
+    ",": { match: ",", next: "main" },
+    "=": { match: "=", next: "main" },
+    identifier: { match: /[a-zA-Z_][a-zA-Z0-9_\.]*/, next: "main" }
+  }
 });
 
 export interface KotlinBlock {
@@ -77,16 +83,15 @@ export type NearleySymbol = string | { literal: any } | { test: (token: any) => 
 export var Lexer: Lexer | undefined = lexer;
 
 export var ParserRules: NearleyRule[] = [
-    {"name": "Script", "symbols": ["_", "_"], "postprocess": () => ({})},
     {"name": "Script", "symbols": ["_", "Blocks", "_"], "postprocess": scriptPostProcess},
     {"name": "Blocks", "symbols": ["Block"]},
     {"name": "Blocks", "symbols": ["Block", "_", "Blocks"], "postprocess": concatToArray(0, 2)},
-    {"name": "Block", "symbols": ["BlockName", "_", {"literal":"{"}, "_", "Fields", "_", {"literal":"}"}], "postprocess": d => ({ block: d[0], body: d[4] })},
+    {"name": "Block", "symbols": ["BlockName", "_", {"literal":"{"}, "_", "Fields", "_", {"literal":"}"}], "postprocess": d => ({ block: d[0], body: d[4].length ? d[4][0] : d[4] })},
     {"name": "BlockName", "symbols": ["String"], "postprocess": id},
     {"name": "BlockName", "symbols": ["Identifier"], "postprocess": id},
     {"name": "Fields", "symbols": []},
     {"name": "Fields", "symbols": ["Field"]},
-    {"name": "Fields", "symbols": ["Field", "_", "Fields"], "postprocess": concatArrays(0, 2)},
+    {"name": "Fields", "symbols": ["Field", "_", {"literal":"\n"}, "_", "Fields"], "postprocess": concatArrays(0, 4, "Field")},
     {"name": "Field$subexpression$1", "symbols": ["String"]},
     {"name": "Field$subexpression$1", "symbols": ["Identifier"]},
     {"name": "Field$subexpression$1", "symbols": ["Function"]},
@@ -114,12 +119,11 @@ export var ParserRules: NearleyRule[] = [
         }
         },
     {"name": "Identifier", "symbols": [(lexer.has("identifier") ? {type: "identifier"} : identifier)], "postprocess": d => d[0].value},
-    {"name": "_", "symbols": []},
     {"name": "_", "symbols": ["_ws"], "postprocess": d => null},
     {"name": "_", "symbols": ["_ws", (lexer.has("comment") ? {type: "comment"} : comment), "_ws"], "postprocess": d => null},
-    {"name": "_ws", "symbols": []},
+    {"name": "_ws", "symbols": [], "postprocess": d => null},
     {"name": "_ws", "symbols": [(lexer.has("ws") ? {type: "ws"} : ws)], "postprocess": d => null},
-    {"name": "__ws", "symbols": [(lexer.has("ws") ? {type: "ws"} : ws)], "postprocess": d => null}
+    {"name": "__", "symbols": [(lexer.has("ws") ? {type: "ws"} : ws)], "postprocess": d => null}
 ];
 
 export var ParserStart: string = "Script";

@@ -14,7 +14,10 @@ describe("Parser functional tests", () => {
     [`block {}`, { block: { block: "block", body: [] } }],
     [`block { }`, { block: { block: "block", body: [] } }],
     [
-      `block1 { } block2 { }`,
+      `
+      block1 { }
+      block2 { }
+      `,
       {
         block1: { block: "block1", body: [] },
         block2: { block: "block2", body: [] }
@@ -35,7 +38,11 @@ describe("Parser functional tests", () => {
     [`block {test}`, { block: { block: "block", body: ["test"] } }],
     [`block { test }`, { block: { block: "block", body: ["test"] } }],
     [
-      `block { test one two }`,
+      `block {
+        test
+        one
+        two
+      }`,
       { block: { block: "block", body: ["test", "one", "two"] } }
     ],
     [
@@ -181,9 +188,7 @@ describe("Parser functional tests", () => {
       {
         plugins: {
           block: "plugins",
-          body: [
-            "java-library"
-          ]
+          body: ["java-library"]
         }
       }
     ],
@@ -266,12 +271,12 @@ describe("Parser functional tests", () => {
   ])("test", ((input: string, expected: any) => {
     it(`should parse: ${input}`, () => testParsing(input, expected));
   }) as any);
-
-  // describe.each([
-  //   ["../fixtures/type-safe.gradle.kts"]
-  // ])("", (p) => {
-  //   const file = fs.readFileSync(path.resolve(__dirname, p), "utf8");
-  //   const parser = new KotlinDSLParser();
-  //   parser.parse(file);
-  // });
 });
+
+// describe("", () => {
+//   it(`should parse:`, () => {
+//     const parser = new KotlinDSLParser();
+//     const result = parser.parse(`block{}`);
+//     // expect(result.length).toEqual(1);
+//   });
+// });

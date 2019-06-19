@@ -4,19 +4,25 @@
 
 const moo = require("moo");
 
-const lexer = moo.compile({
-  ws: { match: /[ \t\n]+/, lineBreaks: true },
-  comment: /\/\/.+$/,
-  number:  /0|[1-9][0-9]*/,
-  string:  /["|`|'](?:\\["\\]|[^\n"\\])*["|`|']/,
-  null: 'null',
-  "{": "{",
-  "}": "}",
-  "(": "(",
-  ")": ")",
-  ",": ",",
-  "=": "=",
-  identifier: { match: /[a-zA-Z_][a-zA-Z0-9_\.]*/ }
+const rules = {
+
+};
+
+const lexer = moo.states({
+  main: {
+    ws: { match: /[ \t\n]+/, lineBreaks: true },
+    comment: { match: /\/\/.+$/, next: "main" },
+    number:  { match: /0|[1-9][0-9]*/, next: "main" },
+    string:  { match: /["|`|'](?:\\["\\]|[^\n"\\])*["|`|']/, next: "main" },
+    null: { match: 'null', next: "main" },
+    "{": { match: "{", next: "main" },
+    "}": { match: "}", next: "main" },
+    "(": { match: "(", next: "main" },
+    ")": { match: ")", next: "main" },
+    ",": { match: ",", next: "main" },
+    "=": { match: "=", next: "main" },
+    identifier: { match: /[a-zA-Z_][a-zA-Z0-9_\.]*/, next: "main" }
+  }
 });
 
 export interface KotlinBlock {
@@ -51,17 +57,16 @@ const scriptPostProcess = (d: any[][]) => d[1].reduce<KotlinBlocksDictionary>((d
 
 @lexer lexer
 
-Script -> _ null _ {% () => ({}) %} 
-        | _ Blocks _ {% scriptPostProcess %}
+Script -> _ Blocks _ {% scriptPostProcess %}
 
 Blocks -> Block | Block _ Blocks {% concatToArray(0, 2) %}
 
-Block -> BlockName _ "{" _ Fields _ "}" {% d => ({ block: d[0], body: d[4] }) %}
+Block -> BlockName _ "{" _ Fields _ "}" {% d => ({ block: d[0], body: d[4].length ? d[4][0] : d[4] }) %}
 
 BlockName -> String {% id %}
            | Identifier {% id %}
 
-Fields -> null | Field | Field _ Fields {% concatArrays(0, 2)  %}
+Fields -> null | Field | Field _ "\n" _ Fields {% concatArrays(0, 4, "Field") %}
 
 Field -> ( String | Identifier | Function | Block | Declaration ) {% id %}
 
@@ -92,8 +97,8 @@ String -> %string {% d => {
 
 Identifier -> %identifier {% d => d[0].value %}
 
-_ -> null | _ws {% d => null %} | _ws %comment _ws {% d => null %}
+_ -> _ws {% d => null %} | _ws %comment _ws {% d => null %}
 
-_ws -> null | %ws {% d => null %}
+_ws -> null {% d => null %} | %ws {% d => null %}
 
-__ws -> %ws {% d => null %}
+__ -> %ws {% d => null %}
