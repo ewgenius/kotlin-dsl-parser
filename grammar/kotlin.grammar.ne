@@ -34,13 +34,6 @@ export type KotlinBlocksDictionary = {
   [name: string]: KotlinBlock
 };
 
-const concatArrays = (a: number, b: number, debug?: string) => (d: any[][]) => {
-  if (debug) {
-    console.log(debug, d[a], d[b]);
-  }
-  return [...d[a], ...d[b]];
-}
-
 const concatToArray = (a: number, b: number, debug?: string) => (d: any[][]) => {
   if (debug) {
     console.log(debug, d[a], d[b]);
@@ -62,11 +55,12 @@ Script -> _ Blocks _ {% scriptPostProcess %}
 Blocks -> Block | Block _ Blocks {% concatToArray(0, 2) %}
 
 Block -> BlockName _ "{" _ Fields _ "}" {% d => ({ block: d[0], body: d[4] }) %}
+       | BlockName _ "{" _ "}" {% d => ({ block: d[0], body: [] }) %}
 
 BlockName -> String {% id %}
            | Identifier {% id %}
 
-Fields -> null | Field | Field __ Fields {% concatToArray(0, 2) %}
+Fields -> Field | Field __ Fields  {% concatToArray(0, 2) %}
 
 Field -> String {% id %}
        | Identifier {% id %}
@@ -84,9 +78,10 @@ Argument -> Number {% id %}
           | Identifier {% id %}
           | Declaration {% id %}
 
-Declaration -> Identifier _ "=" _ Expression {% d => ({ declaration: d[0], value: d[4][0] }) %}
+Declaration -> Identifier _ "=" _ Expression {% d => ({ declaration: d[0], value: d[4] }) %}
 
-Expression -> ( Argument | Function ) {% id %}
+Expression -> Argument {% id %}
+            | Function {% id %}
 
 # Primitives
 

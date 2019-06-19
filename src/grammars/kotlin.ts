@@ -42,13 +42,6 @@ export type KotlinBlocksDictionary = {
   [name: string]: KotlinBlock
 };
 
-const concatArrays = (a: number, b: number, debug?: string) => (d: any[][]) => {
-  if (debug) {
-    console.log(debug, d[a], d[b]);
-  }
-  return [...d[a], ...d[b]];
-}
-
 const concatToArray = (a: number, b: number, debug?: string) => (d: any[][]) => {
   if (debug) {
     console.log(debug, d[a], d[b]);
@@ -87,9 +80,9 @@ export var ParserRules: NearleyRule[] = [
     {"name": "Blocks", "symbols": ["Block"]},
     {"name": "Blocks", "symbols": ["Block", "_", "Blocks"], "postprocess": concatToArray(0, 2)},
     {"name": "Block", "symbols": ["BlockName", "_", {"literal":"{"}, "_", "Fields", "_", {"literal":"}"}], "postprocess": d => ({ block: d[0], body: d[4] })},
+    {"name": "Block", "symbols": ["BlockName", "_", {"literal":"{"}, "_", {"literal":"}"}], "postprocess": d => ({ block: d[0], body: [] })},
     {"name": "BlockName", "symbols": ["String"], "postprocess": id},
     {"name": "BlockName", "symbols": ["Identifier"], "postprocess": id},
-    {"name": "Fields", "symbols": []},
     {"name": "Fields", "symbols": ["Field"]},
     {"name": "Fields", "symbols": ["Field", "__", "Fields"], "postprocess": concatToArray(0, 2)},
     {"name": "Field", "symbols": ["String"], "postprocess": id},
@@ -106,10 +99,9 @@ export var ParserRules: NearleyRule[] = [
     {"name": "Argument", "symbols": ["String"], "postprocess": id},
     {"name": "Argument", "symbols": ["Identifier"], "postprocess": id},
     {"name": "Argument", "symbols": ["Declaration"], "postprocess": id},
-    {"name": "Declaration", "symbols": ["Identifier", "_", {"literal":"="}, "_", "Expression"], "postprocess": d => ({ declaration: d[0], value: d[4][0] })},
-    {"name": "Expression$subexpression$1", "symbols": ["Argument"]},
-    {"name": "Expression$subexpression$1", "symbols": ["Function"]},
-    {"name": "Expression", "symbols": ["Expression$subexpression$1"], "postprocess": id},
+    {"name": "Declaration", "symbols": ["Identifier", "_", {"literal":"="}, "_", "Expression"], "postprocess": d => ({ declaration: d[0], value: d[4] })},
+    {"name": "Expression", "symbols": ["Argument"], "postprocess": id},
+    {"name": "Expression", "symbols": ["Function"], "postprocess": id},
     {"name": "Number", "symbols": [(lexer.has("number") ? {type: "number"} : number)], "postprocess": d => Number(d[0].value)},
     {"name": "String", "symbols": [(lexer.has("string") ? {type: "string"} : string)], "postprocess":  d => {
           if (d[0].value[0] === '"' || d[0].value[0] === '`' || d[0].value[0] === "'") {
