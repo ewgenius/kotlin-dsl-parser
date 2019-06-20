@@ -4,6 +4,13 @@ import * as moo from "moo";
 import chalk from "chalk";
 import { Rule } from "moo";
 
+const inspectMemory = () => {
+  const used = process.memoryUsage().heapUsed / 1024 / 1024;
+  console.log(
+    `The script uses approximately ${Math.round(used * 100) / 100} MB`
+  );
+};
+
 enum Type {
   WS = "WS",
   comment = "comment",
@@ -35,7 +42,10 @@ const baseRules: RulesDictionary = {
   [Type.WS]: { match: /[ \t]+/ },
   [Type.comment]: { match: /\/\/.*?$/ },
   [Type.number]: { match: /0|[1-9][0-9]*/ },
-  [Type.string]: { match: /["|'|`](?:\\["\\]|[^\n"\\])*["|'|`]/ },
+  [Type.string]: {
+    match: /["|'|`](?:\\["\\]|[^\n"\\])*["|'|`]/,
+    value: x => x.slice(1, -1)
+  },
   [Type.NL]: { match: /\n/, lineBreaks: true },
   [Type.identifier]: { match: /[a-zA-Z_][a-zA-Z0-9_\.<>]*/ }
 };
@@ -134,8 +144,13 @@ const logState = (state: moo.LexerState, message: string = "") => {
   );
 };
 
+const start = Date.now();
+
 const initialState = lexer.save();
 logState(initialState);
+
+const buildTypes: string[] = [];
+const productFlavors: string[] = [];
 
 let token = lexer.next();
 let previousState;
@@ -146,9 +161,14 @@ while (token) {
   }
   if (token.type === Type.string) {
     switch (state.state) {
-      case State.BuildTypeDeclaration:
+      case State.BuildTypeDeclaration: {
+        logState(state, chalk.green(token.value));
+        buildTypes.push(token.value);
+        break;
+      }
       case State.ProductFlavorDeclaration: {
         logState(state, chalk.green(token.value));
+        productFlavors.push(token.value);
         break;
       }
     }
@@ -156,3 +176,18 @@ while (token) {
   previousState = state.state;
   token = lexer.next();
 }
+
+console.log(
+  JSON.stringify(
+    {
+      buildTypes,
+      productFlavors
+    },
+    null,
+    2
+  )
+);
+
+console.log(`completed in ${Date.now() - start} ms`);
+
+inspectMemory();
