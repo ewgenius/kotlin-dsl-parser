@@ -1,9 +1,9 @@
 import path from "path";
 import fs from "fs";
-import { KotlinDSLParser } from "../src/";
+import { KotlinGradleDSLParser } from "../src/";
 
 const testParsing = (input: string, expectedResult: any) => {
-  const parser = new KotlinDSLParser();
+  const parser = new KotlinGradleDSLParser();
   const result = parser.parse(input);
   expect(result.length).toEqual(1);
   expect(result[0]).toEqual(expectedResult);
@@ -11,7 +11,7 @@ const testParsing = (input: string, expectedResult: any) => {
 
 const tryParsing = (file: string) => {
   const input = fs.readFileSync(path.resolve(__dirname, file), "utf8");
-  const parser = new KotlinDSLParser();
+  const parser = new KotlinGradleDSLParser();
   const result = parser.parse(input);
   expect(result.length).toEqual(1);
 };
@@ -382,4 +382,16 @@ describe("Real examples test", () => {
       it(`should parse "${file}"`, () => tryParsing(file));
     }
   );
+});
+
+describe("Test", () => {
+  it.only("", () => {
+    const parser = new KotlinGradleDSLParser();
+    const result = parser.parse(`
+    plugins {
+      id("com.android.application")
+    }
+  `);
+    expect(result[0]).toEqual([]);
+  });
 });
