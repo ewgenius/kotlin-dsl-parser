@@ -228,7 +228,7 @@ export function parse(input: string, debug = false) {
     logState(initialState);
   }
 
-  const buildTypes = new Set<string>();
+  const buildTypes = new Set<string>(["release", "debug"]);
   const productFlavors = new Set<string>();
 
   let token = lexer.next();
