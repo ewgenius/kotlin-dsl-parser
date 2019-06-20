@@ -35,7 +35,7 @@ export enum State {
   ProductFlavorDeclaration = "ProductFlavorDeclaration"
 }
 
-const keyword = ["(", ")", "{", "}", "=", ",", "[", "]", "!", ".", ":", "->", "?"];
+const keyword = ["(", ")", "{", "}", "=", ",", "[", "]", "!", ".", ":", "->", "?", "&", "|"];
 
 const ignoringRules: RulesDictionary = {
   [Type.WS]: { match: /[ \t]+/ },

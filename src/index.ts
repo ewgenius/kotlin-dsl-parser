@@ -7,7 +7,7 @@ const paths: string[] = [
   "../__tests__/fixtures/build.gradle.kts",
   "../__tests__/fixtures/type-safe.gradle.kts",
   "../__tests__/fixtures/non-type-safe.gradle.kts",
-  ...[1, 2, 3, 4, 5, 6, 7, 8].map(i => `../__tests__/fixtures/build-sample-${i}.gradle.kts`)
+  ...[1, 2, 3, 4, 5, 6, 7, 8, 9, 10, 11, 12, 13, 14, 15, 16, 17, 18, 19, 20, 21].map(i => `../__tests__/fixtures/build-sample-${i}.gradle.kts`)
 ];
 
 for (let file in paths) {
