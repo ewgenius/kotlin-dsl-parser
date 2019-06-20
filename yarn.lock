@@ -350,6 +350,11 @@
   dependencies:
     "@types/jest-diff" "*"
 
+"@types/moo@^0.5.0":
+  version "0.5.0"
+  resolved "https://registry.yarnpkg.com/@types/moo/-/moo-0.5.0.tgz#83fd6a9b0fa12fc7101294db69a9982a9f8d9360"
+  integrity sha512-ldhNEcZeco2Fk38z1vhgjmn2K5wyiFrJK2nLClTx/FqsFuBvqIHkzbZUEzstISobpKeMK8oRCiK/zV3zcTLOPw==
+
 "@types/nearley@^2.11.0":
   version "2.11.0"
   resolved "https://registry.yarnpkg.com/@types/nearley/-/nearley-2.11.0.tgz#308fd197fdd6d76c52c4ca6f5bb8f42073afa91b"
