@@ -12,6 +12,7 @@ const inspectMemory = () => {
 export enum Type {
   WS = "WS",
   comment = "comment",
+  multilinecomment = "multilinecomment",
   number = "number",
   string = "string",
   NL = "NL",
@@ -34,11 +35,15 @@ export enum State {
   ProductFlavorDeclaration = "ProductFlavorDeclaration"
 }
 
-const keyword = ["(", ")", "{", "}", "=", ","];
+const keyword = ["(", ")", "{", "}", "=", ",", "[", "]", "!", ".", ":", "->", "?"];
 
-const baseRules: RulesDictionary = {
+const ignoringRules: RulesDictionary = {
   [Type.WS]: { match: /[ \t]+/ },
   [Type.comment]: { match: /\/\/.*?$/ },
+  [Type.multilinecomment]: { match: /\/\*[\s\S]*?\*\//, lineBreaks: true }
+};
+
+const baseRules: RulesDictionary = {
   [Type.number]: { match: /0|[1-9][0-9]*/ },
   [Type.string]: {
     match: /["|'|`](?:\\["\\]|[^\n"\\])*["|'|`]/,
@@ -91,35 +96,41 @@ const extendRules = (rules: RulesDictionary, next: State) => {
 
 const lexer = moo.states({
   [State.Root]: {
+    ...extendRules(ignoringRules, State.Root),
     ...mainRules,
     ...extendRules(baseRules, State.Root),
     keyword
   },
   [State.Plugins]: {
+    ...extendRules(ignoringRules, State.Plugins),
     ...blockRules(State.Plugins),
     ...extendRules(pluginRules, State.Plugins),
     ...extendRules(baseRules, State.Plugins),
     keyword
   },
   [State.BuildTypes]: {
+    ...extendRules(ignoringRules, State.BuildTypes),
     ...declarationRules(State.BuildTypeDeclaration),
     ...blockRules(State.BuildTypes),
     ...extendRules(baseRules, State.BuildTypes),
     keyword
   },
   [State.BuildTypeDeclaration]: {
+    ...extendRules(ignoringRules, State.BuildTypeDeclaration),
     ...blockRules(State.BuildTypeDeclaration),
     ...parentesisRules(State.BuildTypeDeclaration),
     ...extendRules(baseRules, State.BuildTypeDeclaration),
     keyword
   },
   [State.ProductFlavors]: {
+    ...extendRules(ignoringRules, State.ProductFlavors),
     ...declarationRules(State.ProductFlavorDeclaration),
     ...blockRules(State.ProductFlavors),
     ...extendRules(baseRules, State.ProductFlavors),
     keyword
   },
   [State.ProductFlavorDeclaration]: {
+    ...extendRules(ignoringRules, State.ProductFlavorDeclaration),
     ...parentesisRules(State.ProductFlavorDeclaration),
     ...blockRules(State.ProductFlavorDeclaration),
     ...extendRules(baseRules, State.ProductFlavorDeclaration),
