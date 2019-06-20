@@ -2,12 +2,6 @@ import * as fs from "fs";
 import * as path from "path";
 import * as moo from "moo";
 import { Rule, Token } from "moo";
-import * as readline from "readline";
-
-// const rl = readline.createInterface({
-//   input: process.stdin,
-//   output: process.stdout
-// });
 
 enum Type {
   WS = "WS",
