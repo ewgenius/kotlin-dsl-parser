@@ -2,12 +2,12 @@ import * as moo from "moo";
 import chalk from "chalk";
 import { Rule } from "moo";
 
-const inspectMemory = () => {
+function inspectMemory() {
   const used = process.memoryUsage().heapUsed / 1024 / 1024;
   console.log(
     `The script uses approximately ${Math.round(used * 100) / 100} MB`
   );
-};
+}
 
 export enum Type {
   WS = "WS",
@@ -79,28 +79,28 @@ const pluginRules: RulesDictionary = {
   [Type.AndroidPlugin]: { match: "com.android.application" }
 };
 
-const blockRules = (push: State): RulesDictionary => {
+function blockRules(push: State): RulesDictionary {
   return {
     "{": { match: "{", push },
     "}": { match: "}", pop: 1 }
   };
-};
+}
 
-const parentesisRules = (push: State): RulesDictionary => {
+function parentesisRules(push: State): RulesDictionary {
   return {
     "(": { match: "(", push },
     ")": { match: ")", pop: 1 }
   };
-};
+}
 
-const declarationRules = (push: State): RulesDictionary => {
+function declarationRules(push: State): RulesDictionary {
   return {
     getByName: { match: /getByName *\(/, push },
     create: { match: /create *\(/, push }
   };
-};
+}
 
-const extendRules = (rules: RulesDictionary, next: State) => {
+function extendRules(rules: RulesDictionary, next: State) {
   return Object.keys(rules).reduce((extended: RulesDictionary, key: string) => {
     extended[key] = {
       ...rules[key],
@@ -108,7 +108,7 @@ const extendRules = (rules: RulesDictionary, next: State) => {
     };
     return extended;
   }, {});
-};
+}
 
 const lexer = moo.states({
   [State.Root]: {
@@ -154,16 +154,16 @@ const lexer = moo.states({
   }
 });
 
-const logState = (state: moo.LexerState, message: string = "") => {
+function logState(state: moo.LexerState, message: string = "") {
   console.log(
     chalk.yellow(`#${state.line}: ${state.col} `),
     chalk.red(state.state),
     `: `,
     message
   );
-};
+}
 
-export const parse = (input: string, debug = false) => {
+export function parse(input: string, debug = false) {
   const start = Date.now();
   lexer.reset(input);
 
@@ -216,4 +216,4 @@ export const parse = (input: string, debug = false) => {
   }
 
   return result;
-};
+}
