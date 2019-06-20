@@ -29,6 +29,7 @@ export type RulesDictionary = {
 export enum State {
   Root = "root",
   Plugins = "plugins",
+  Android = "android",
   BuildTypes = "buildTypes",
   BuildTypeDeclaration = "buildTypeDeclaration",
   ProductFlavors = "productFlavors",
@@ -71,9 +72,13 @@ const baseRules: RulesDictionary = {
 
 const mainRules: RulesDictionary = {
   plugins: { match: /plugins *{/, push: State.Plugins },
+  android: { match: /android *{/, push: State.Android }
+};
+
+const androidRules: RulesDictionary = {
   buildTypes: { match: /buildTypes *{/, push: State.BuildTypes },
   productFlavors: { match: /productFlavors[ *]{/, push: State.ProductFlavors }
-};
+}
 
 const pluginRules: RulesDictionary = {
   [Type.AndroidPlugin]: { match: "com.android.application" }
@@ -93,9 +98,15 @@ function parentesisRules(push: State): RulesDictionary {
   };
 }
 
-function declarationRules(push: State): RulesDictionary {
+function buildTypesDeclarationRules(push: State): RulesDictionary {
   return {
     getByName: { match: /getByName *\(/, push },
+    create: { match: /create *\(/, push }
+  };
+}
+
+function productFlavorsDeclarationRules(push: State): RulesDictionary {
+  return {
     create: { match: /create *\(/, push }
   };
 }
@@ -124,9 +135,16 @@ const lexer = moo.states({
     ...extendRules(baseRules, State.Plugins),
     keyword
   },
+  [State.Android]: {
+    ...extendRules(ignoringRules, State.Android),
+    ...blockRules(State.Android),
+    ...androidRules,
+    ...extendRules(baseRules, State.Android),
+    keyword
+  },
   [State.BuildTypes]: {
     ...extendRules(ignoringRules, State.BuildTypes),
-    ...declarationRules(State.BuildTypeDeclaration),
+    ...buildTypesDeclarationRules(State.BuildTypeDeclaration),
     ...blockRules(State.BuildTypes),
     ...extendRules(baseRules, State.BuildTypes),
     keyword
@@ -140,7 +158,7 @@ const lexer = moo.states({
   },
   [State.ProductFlavors]: {
     ...extendRules(ignoringRules, State.ProductFlavors),
-    ...declarationRules(State.ProductFlavorDeclaration),
+    ...productFlavorsDeclarationRules(State.ProductFlavorDeclaration),
     ...blockRules(State.ProductFlavors),
     ...extendRules(baseRules, State.ProductFlavors),
     keyword
@@ -172,8 +190,8 @@ export function parse(input: string, debug = false) {
     logState(initialState);
   }
 
-  const buildTypes: string[] = [];
-  const productFlavors: string[] = [];
+  const buildTypes = new Set<string>();
+  const productFlavors = new Set<string>();
 
   let token = lexer.next();
   let previousState;
@@ -188,14 +206,14 @@ export function parse(input: string, debug = false) {
           if (debug) {
             logState(state, chalk.green(token.value));
           }
-          buildTypes.push(token.value);
+          buildTypes.add(token.value);
           break;
         }
         case State.ProductFlavorDeclaration: {
           if (debug) {
             logState(state, chalk.green(token.value));
           }
-          productFlavors.push(token.value);
+          productFlavors.add(token.value);
           break;
         }
       }
@@ -205,8 +223,8 @@ export function parse(input: string, debug = false) {
   }
 
   const result = {
-    buildTypes,
-    productFlavors
+    buildTypes: Array.from(buildTypes),
+    productFlavors: Array.from(productFlavors)
   };
 
   if (debug) {
