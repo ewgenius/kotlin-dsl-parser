@@ -1,7 +1,8 @@
 import * as fs from "fs";
 import * as path from "path";
 import * as moo from "moo";
-import { Rule, Token } from "moo";
+import chalk from "chalk";
+import { Rule } from "moo";
 
 enum Type {
   WS = "WS",
@@ -23,7 +24,9 @@ enum State {
   Root = "root",
   Plugins = "plugins",
   BuildTypes = "buildTypes",
-  ProductFlavors = "productFlavors"
+  BuildTypeDeclaration = "buildTypeDeclaration",
+  ProductFlavors = "productFlavors",
+  ProductFlavorDeclaration = "ProductFlavorDeclaration"
 }
 
 const keyword = ["(", ")", "{", "}", "=", ","];
@@ -38,8 +41,8 @@ const baseRules: RulesDictionary = {
 };
 
 const mainRules: RulesDictionary = {
-  plugins: { match: /plugins[ *]{/, push: State.Plugins },
-  buildTypes: { match: /buildTypes[ *]{/, push: State.BuildTypes },
+  plugins: { match: /plugins *{/, push: State.Plugins },
+  buildTypes: { match: /buildTypes *{/, push: State.BuildTypes },
   productFlavors: { match: /productFlavors[ *]{/, push: State.ProductFlavors }
 };
 
@@ -51,6 +54,20 @@ const blockRules = (push: State): RulesDictionary => {
   return {
     "{": { match: "{", push },
     "}": { match: "}", pop: 1 }
+  };
+};
+
+const parentesisRules = (push: State): RulesDictionary => {
+  return {
+    "(": { match: "(", push },
+    ")": { match: ")", pop: 1 }
+  };
+};
+
+const declarationRules = (push: State): RulesDictionary => {
+  return {
+    getByName: { match: /getByName *\(/, push },
+    create: { match: /create *\(/, push }
   };
 };
 
@@ -77,13 +94,27 @@ const lexer = moo.states({
     keyword
   },
   [State.BuildTypes]: {
+    ...declarationRules(State.BuildTypeDeclaration),
     ...blockRules(State.BuildTypes),
     ...extendRules(baseRules, State.BuildTypes),
     keyword
   },
+  [State.BuildTypeDeclaration]: {
+    ...blockRules(State.BuildTypeDeclaration),
+    ...parentesisRules(State.BuildTypeDeclaration),
+    ...extendRules(baseRules, State.BuildTypeDeclaration),
+    keyword
+  },
   [State.ProductFlavors]: {
+    ...declarationRules(State.ProductFlavorDeclaration),
     ...blockRules(State.ProductFlavors),
     ...extendRules(baseRules, State.ProductFlavors),
+    keyword
+  },
+  [State.ProductFlavorDeclaration]: {
+    ...parentesisRules(State.ProductFlavorDeclaration),
+    ...blockRules(State.ProductFlavorDeclaration),
+    ...extendRules(baseRules, State.ProductFlavorDeclaration),
     keyword
   }
 });
@@ -94,18 +125,34 @@ const input = fs.readFileSync(
 );
 lexer.reset(input);
 
-console.log(lexer.save());
+const logState = (state: moo.LexerState, message: string = "") => {
+  console.log(
+    chalk.yellow(`#${state.line}: ${state.col} `),
+    chalk.red(state.state),
+    `: `,
+    message
+  );
+};
+
+const initialState = lexer.save();
+logState(initialState);
+
 let token = lexer.next();
+let previousState;
 while (token) {
   const state = lexer.save();
-  switch (token.type as Type) {
-    case Type.identifier: {
-      console.log(`#${state.line}:${state.col} - ${state.state} : ${token.value}`);
-      break;
-    }
-    default: {
-      console.log(`#${state.line}:${state.col} - ${state.state}`);
+  if (previousState !== state.state) {
+    logState(state, token.value);
+  }
+  if (token.type === Type.string) {
+    switch (state.state) {
+      case State.BuildTypeDeclaration:
+      case State.ProductFlavorDeclaration: {
+        logState(state, chalk.green(token.value));
+        break;
+      }
     }
   }
+  previousState = state.state;
   token = lexer.next();
 }

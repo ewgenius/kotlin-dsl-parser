@@ -16,7 +16,7 @@ android {
   }
   buildTypes {
     val booleanType = "Boolean"
-    getByName("debug") {
+    getByName ("debug") {
       buildConfigField(booleanType, Config.BuildFurniture.ENABLE_ROTATION, false.toString())
       isDebuggable = true
     }
