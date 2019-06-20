@@ -78,7 +78,7 @@ const mainRules: RulesDictionary = {
 const androidRules: RulesDictionary = {
   buildTypes: { match: /buildTypes *{/, push: State.BuildTypes },
   productFlavors: { match: /productFlavors[ *]{/, push: State.ProductFlavors }
-}
+};
 
 const pluginRules: RulesDictionary = {
   [Type.AndroidPlugin]: { match: "com.android.application" }
@@ -172,11 +172,49 @@ const lexer = moo.states({
   }
 });
 
+function getStateLevel(state: moo.LexerState): number {
+  switch (state.state) {
+    case State.Plugins:
+    case State.Android: {
+      return 1;
+      break;
+    }
+    case State.BuildTypes:
+    case State.ProductFlavors: {
+      return 2;
+      break;
+    }
+    case State.BuildTypeDeclaration:
+    case State.ProductFlavorDeclaration: {
+      return 3;
+      break;
+    }
+  }
+  return 0;
+}
+
 function logState(state: moo.LexerState, message: string = "") {
+  let statePrefix = "";
+  switch (state.state) {
+    case State.Plugins:
+    case State.Android: {
+      statePrefix = "--";
+      break;
+    }
+    case State.BuildTypes:
+    case State.ProductFlavors: {
+      statePrefix = "----";
+      break;
+    }
+    case State.BuildTypeDeclaration:
+    case State.ProductFlavorDeclaration: {
+      statePrefix = "------";
+      break;
+    }
+  }
   console.log(
-    chalk.yellow(`#${state.line}: ${state.col} `),
-    chalk.red(state.state),
-    `: `,
+    chalk.red(`${statePrefix}${state.state}`),
+    chalk.yellow(`#${state.line}:${state.col} `),
     message
   );
 }
@@ -197,7 +235,12 @@ export function parse(input: string, debug = false) {
   let previousState;
   while (token) {
     const state = lexer.save();
-    if (debug && previousState !== state.state) {
+    if (
+      debug &&
+      (!previousState ||
+        (previousState.state !== state.state &&
+          getStateLevel(state) >= getStateLevel(previousState)))
+    ) {
       logState(state, token.value);
     }
     if (token.type === Type.string) {
@@ -218,7 +261,7 @@ export function parse(input: string, debug = false) {
         }
       }
     }
-    previousState = state.state;
+    previousState = state;
     token = lexer.next();
   }
 
