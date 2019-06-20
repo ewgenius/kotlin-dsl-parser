@@ -35,7 +35,23 @@ export enum State {
   ProductFlavorDeclaration = "ProductFlavorDeclaration"
 }
 
-const keyword = ["(", ")", "{", "}", "=", ",", "[", "]", "!", ".", ":", "->", "?", "&", "|"];
+const keyword = [
+  "(",
+  ")",
+  "{",
+  "}",
+  "=",
+  ",",
+  "[",
+  "]",
+  "!",
+  ".",
+  ":",
+  "->",
+  "?",
+  "&",
+  "|"
+];
 
 const ignoringRules: RulesDictionary = {
   [Type.WS]: { match: /[ \t]+/ },
@@ -147,12 +163,14 @@ const logState = (state: moo.LexerState, message: string = "") => {
   );
 };
 
-export const parse = (input: string) => {
+export const parse = (input: string, debug = false) => {
   const start = Date.now();
   lexer.reset(input);
 
   const initialState = lexer.save();
-  logState(initialState);
+  if (debug) {
+    logState(initialState);
+  }
 
   const buildTypes: string[] = [];
   const productFlavors: string[] = [];
@@ -161,18 +179,22 @@ export const parse = (input: string) => {
   let previousState;
   while (token) {
     const state = lexer.save();
-    if (previousState !== state.state) {
+    if (debug && previousState !== state.state) {
       logState(state, token.value);
     }
     if (token.type === Type.string) {
       switch (state.state) {
         case State.BuildTypeDeclaration: {
-          logState(state, chalk.green(token.value));
+          if (debug) {
+            logState(state, chalk.green(token.value));
+          }
           buildTypes.push(token.value);
           break;
         }
         case State.ProductFlavorDeclaration: {
-          logState(state, chalk.green(token.value));
+          if (debug) {
+            logState(state, chalk.green(token.value));
+          }
           productFlavors.push(token.value);
           break;
         }
@@ -187,9 +209,11 @@ export const parse = (input: string) => {
     productFlavors
   };
 
-  console.log(JSON.stringify(result, null, 2));
-  console.log(`completed in ${Date.now() - start} ms`);
-  inspectMemory();
+  if (debug) {
+    console.log(JSON.stringify(result, null, 2));
+    console.log(`completed in ${Date.now() - start} ms`);
+    inspectMemory();
+  }
 
   return result;
 };
