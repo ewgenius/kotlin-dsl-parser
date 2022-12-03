@@ -355,11 +355,6 @@
   resolved "https://registry.yarnpkg.com/@types/moo/-/moo-0.5.0.tgz#83fd6a9b0fa12fc7101294db69a9982a9f8d9360"
   integrity sha512-ldhNEcZeco2Fk38z1vhgjmn2K5wyiFrJK2nLClTx/FqsFuBvqIHkzbZUEzstISobpKeMK8oRCiK/zV3zcTLOPw==
 
-"@types/nearley@^2.11.0":
-  version "2.11.0"
-  resolved "https://registry.yarnpkg.com/@types/nearley/-/nearley-2.11.0.tgz#308fd197fdd6d76c52c4ca6f5bb8f42073afa91b"
-  integrity sha512-sW7qB59pz+AJCpiT3ivsMMsr/5stuCUf4IC22QfhYAMItBy3XSjyzCa/oRG+oTTzYnx5VuPtPNHN4fZ0QRnKDg==
-
 "@types/node@^12.0.7":
   version "12.0.7"
   resolved "https://registry.yarnpkg.com/@types/node/-/node-12.0.7.tgz#4f2563bad652b2acb1722d7e7aae2b0ff62d192c"
@@ -977,9 +972,9 @@ decamelize@^1.2.0:
   integrity sha1-9lNNFRSCabIDUue+4m9QH5oZEpA=
 
 decode-uri-component@^0.2.0:
-  version "0.2.0"
-  resolved "https://registry.yarnpkg.com/decode-uri-component/-/decode-uri-component-0.2.0.tgz#eb3913333458775cb84cd1a1fae062106bb87545"
-  integrity sha1-6zkTMzRYd1y4TNGh+uBiEGu4dUU=
+  version "0.2.2"
+  resolved "https://registry.yarnpkg.com/decode-uri-component/-/decode-uri-component-0.2.2.tgz#e69dbe25d37941171dd540e024c444cd5188e1e9"
+  integrity sha512-FqUYQ+8o158GyGTrMFJms9qh3CqTKvAqgqsTnkLI8sKu0028orqBhxNMFkFen0zGyg6epACD32pjVk58ngIErQ==
 
 deep-extend@^0.6.0:
   version "0.6.0"
